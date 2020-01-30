@@ -39,6 +39,13 @@ class Payment extends BaseModel
         ];
     }
 
+    public function rules_update()
+    {
+        return [
+            'amount_pending'    => 'required|numeric'
+        ];
+    }
+
     public function isAvailable()
     {
         return $this->status == Payment::PAYMENT_STATUS_AVAILABLE;

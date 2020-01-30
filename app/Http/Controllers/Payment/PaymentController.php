@@ -30,15 +30,15 @@ class PaymentController extends Controller
      /**
      * Show an specific Payment
      */
-    public function show($id, PaymentService $paymentService)
+    public function show(Request $request, $id, PaymentService $paymentService, ClientService $clientService, UserService $userService)
     {
-        return $paymentService->show($id);
+        return $paymentService->show($request, $id, $clientService, $userService);
     }
 
      /**
      * Update a Payment
      */
-    public function update(Request $request, $id, Payment $payment, PaymentService $paymentService)
+    public function update(Request $request, $id, PaymentService $paymentService)
     {
         return $paymentService->update($request, $id);
     }

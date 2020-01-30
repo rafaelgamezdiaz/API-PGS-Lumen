@@ -46,7 +46,27 @@ class PaymentService extends BaseService
         return $this->errorMessage('Sorry! Something was wrong, payment was not saved. Please try againg.');
     }
 
-    public function show($id){
-        return Payment::findOrFail($id);
+    public function show($request, $id, $clientService, $userService){
+        $payment = Payment::findOrFail($id);
+        $payment->type;
+        $payment->method;
+        $payment->client = $clientService->getClient($request, $payment->client_id, false);
+        $payment->user = $userService->getUser($request, $payment->username, false);
+
+        return $payment;
+    }
+
+    /**
+     * Update the Subscription
+     */
+    public function update($request, $id)
+    {
+        $payment = Payment::findOrFail($id);
+        $this->validate($request, $payment->rules_update());
+        $payment->amount_pending = $request->amount_pending;
+        if ($payment->update()) {
+            return $this->successResponse("Payment was updated!");
+        }
+        return $this->errorMessage('Sorry. Something happends when trying to update the payment!', 409);
     }
 }

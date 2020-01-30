@@ -17,10 +17,13 @@ $router->group(['prefix' => 'pa', 'middleware' => 'auth'], function () use ($rou
     // PAYMENT ROUTES
     $router->get('payments/', 'Payment\PaymentController@index');
     $router->post('payments/', 'Payment\PaymentController@store');
+    $router->get('payments/{id}', 'Payment\PaymentController@show');
+    $router->put('payments/{id}', 'Payment\PaymentController@update');
+    $router->patch('payments/{id}', 'Payment\PaymentController@update');
 
     // PAYMENT METHOD
-    $router->get('payments/methods', 'Method\MethodController@index');
+    $router->get('methods', 'Method\MethodController@index');
 
     // PAYMENT TYPE
-    $router->get('payments/type', 'Type\TypeController@index');
+    $router->get('type', 'Type\TypeController@index');
 } );
