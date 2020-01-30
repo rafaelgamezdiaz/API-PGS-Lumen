@@ -27,6 +27,14 @@ $app->withFacades();
 
 $app->withEloquent();
 
+
+/**
+ * Registering config files
+ */
+$app->configure('services');
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Register Container Bindings
@@ -76,7 +84,7 @@ $app->singleton(
 |
 */
 
-// $app->register(App\Providers\AppServiceProvider::class);
+ $app->register(App\Providers\AppServiceProvider::class);
 
 // Registering Lumen Generator (tu use artisan generator in local enviroment)
 if (env('APP_ENV') != 'production' || env('APP_ENV') == 'local') {

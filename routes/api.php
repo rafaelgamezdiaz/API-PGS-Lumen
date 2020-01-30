@@ -12,7 +12,7 @@
 */
 
 
-$router->group(['prefix' => 'sub'], function () use ($router) {  // , 'middleware' => 'auth'
+$router->group(['prefix' => 'pa', 'middleware' => 'auth'], function () use ($router) {  // , 'middleware' => 'auth'
 
     // PAYMENT ROUTES
     $router->get('payments/', 'Payment\PaymentController@index');

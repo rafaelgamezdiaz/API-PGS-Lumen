@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Payment;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,24 +18,22 @@ class CreatePaymentsTable extends Migration
             $table->bigIncrements('id');
 
             // Foreign Key
-            $table->unsignedBigInteger('payment_type_id');
-            $table->foreign('payment_type_id')
+            $table->unsignedBigInteger('type_id');
+            $table->foreign('type_id')
                   ->references('id')
-                  ->on('payments_types');
+                  ->on('types');
 
-            $table->unsignedBigInteger('payment_method_id');
-            $table->foreign('payment_method_id')
+            $table->unsignedBigInteger('method_id');
+            $table->foreign('method_id')
                 ->references('id')
-                ->on('payments_methods');
+                ->on('methods');
 
             $table->unsignedBigInteger('client_id');
-            $table->unsignedBigInteger('user_id');
+            $table->string('username');
             $table->integer('account');
             $table->float('amount');
             $table->float('amount_pending');
-            $table->enum('payment_method', ['Tarjeta', 'Efectivo', 'Transferencia']);
-
-
+            $table->string('status')->default(Payment::PAYMENT_STATUS_AVAILABLE);
 
             $table->softDeletes();
             $table->timestamps();

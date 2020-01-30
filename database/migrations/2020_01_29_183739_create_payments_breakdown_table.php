@@ -13,8 +13,10 @@ class CreatePaymentsBreakdownTable extends Migration
      */
     public function up()
     {
-        Schema::create('payments_breakdown', function (Blueprint $table) {
+        Schema::create('breakdown', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->unsignedBigInteger('sale_id');
+
             $table->timestamps();
         });
     }
@@ -26,6 +28,6 @@ class CreatePaymentsBreakdownTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payments_breakdown');
+        Schema::dropIfExists('breakdown');
     }
 }

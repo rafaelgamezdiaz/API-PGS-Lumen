@@ -12,13 +12,13 @@ class PaymentTypeSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('payments_types')->insert([
+        DB::table('types')->insert([
             'id' => 1,
-            'type' => 'Enviar Pago'
+            'type' => 'A Enviar'
         ]);
-        DB::table('payments_types')->insert([
+        DB::table('types')->insert([
             'id' => 2,
-            'type' => 'Recibir Pago'
+            'type' => 'A Recibir'
         ]);
     }
 }

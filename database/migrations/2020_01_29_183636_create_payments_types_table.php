@@ -13,7 +13,7 @@ class CreatePaymentsTypesTable extends Migration
      */
     public function up()
     {
-        Schema::create('payments_types', function (Blueprint $table) {
+        Schema::create('types', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('type');
             $table->softDeletes();
@@ -28,6 +28,6 @@ class CreatePaymentsTypesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payments_types');
+        Schema::dropIfExists('types');
     }
 }
