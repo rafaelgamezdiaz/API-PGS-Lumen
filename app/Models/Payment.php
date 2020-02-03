@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Payment extends BaseModel
 {
+    use SoftDeletes;
+
     const PAYMENT_STATUS_AVAILABLE = 'Disponible';
     const PAYMENT_STATUS_ASSIGNED = 'Conciliado';
 
@@ -34,8 +38,7 @@ class Payment extends BaseModel
             'client_id'         => 'required|numeric',
             'username'          => 'required',
             'account'           => 'required|numeric',
-            'amount'            => 'required|numeric',
-            'amount_pending'    => 'required|numeric'
+            'amount'            => 'required|numeric'
         ];
     }
 
@@ -61,9 +64,9 @@ class Payment extends BaseModel
         return $this->belongsTo(Type::class);
     }
 
-    public function breakdowns()
+    public function bills()
     {
-        return $this->hasMany(Breakdown::class);
+        return $this->hasMany(Bill::class);
     }
 
 

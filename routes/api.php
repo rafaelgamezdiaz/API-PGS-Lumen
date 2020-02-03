@@ -20,10 +20,24 @@ $router->group(['prefix' => 'pa', 'middleware' => 'auth'], function () use ($rou
     $router->get('payments/{id}', 'Payment\PaymentController@show');
     $router->put('payments/{id}', 'Payment\PaymentController@update');
     $router->patch('payments/{id}', 'Payment\PaymentController@update');
+    $router->delete('payments/{id}', 'Payment\PaymentController@destroy');
 
-    // PAYMENT METHOD
+    // BILLS ROUTES
+    $router->get('bills/', 'Bill\BillController@index');
+    $router->post('bills/', 'Bill\BillController@store');
+    $router->get('bills/{id}', 'Bill\BillController@show');
+    $router->put('bills/{id}', 'Bill\BillController@update');
+    $router->patch('bills/{id}', 'Bill\BillController@update');
+    $router->delete('bills/{id}', 'Bill\BillController@destroy');
+
+    // METHODS ROUTES (Manage methods as "Tarjeta", "Efectivo", "Transferencia", ...)
     $router->get('methods', 'Method\MethodController@index');
 
-    // PAYMENT TYPE
+    // PAYMENT TYPE (Manage types as "A Enviar", "A Recibir")
     $router->get('type', 'Type\TypeController@index');
+
+    // REPORT
+    $router->post('report', 'Report\ReportController@automatic');
+
+
 } );

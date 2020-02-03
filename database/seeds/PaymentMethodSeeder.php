@@ -14,7 +14,7 @@ class PaymentMethodSeeder extends Seeder
     {
         DB::table('methods')->insert([
             'id' => 1,
-            'method' => 'Tarjeta'
+            'method' => 'Transferencia'
         ]);
         DB::table('methods')->insert([
             'id' => 2,
@@ -22,7 +22,11 @@ class PaymentMethodSeeder extends Seeder
         ]);
         DB::table('methods')->insert([
             'id' => 3,
-            'method' => 'Transferencia'
+            'method' => 'Cheque'
+        ]);
+        DB::table('methods')->insert([
+            'id' => 4,
+            'method' => 'Pago Electrónico'
         ]);
 
     }

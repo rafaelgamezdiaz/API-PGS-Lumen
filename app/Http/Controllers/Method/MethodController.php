@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Method;
 
 use App\Http\Controllers\BaseController;
 use App\Models\Payment;
-use Illuminate\Http\Request;
 
 class MethodController extends BaseController
 {

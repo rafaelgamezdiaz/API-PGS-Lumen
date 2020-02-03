@@ -33,17 +33,18 @@ class PaymentService extends BaseService
             $payments->user = $userService->getUser($request, $payments->username, false);
         });
 
-        return $this->successResponse("List of Payments", $payments);
+        return $this->successResponse("Lista de Pagos", $payments);
     }
 
     public function store($request, $payment)
     {
         $this->validate($request, $payment->rules());
         $payment->fill($request->all());
+        $payment->amount_pending = $request->amount;
         if ($payment->save()) {
             return $this->successResponse('Payment was saved!', $payment);
         };
-        return $this->errorMessage('Sorry! Something was wrong, payment was not saved. Please try againg.');
+        return $this->errorMessage('Ha ocurrido un error al intentar guardar el pago.');
     }
 
     public function show($request, $id, $clientService, $userService){
@@ -63,10 +64,30 @@ class PaymentService extends BaseService
     {
         $payment = Payment::findOrFail($id);
         $this->validate($request, $payment->rules_update());
+
+        // Only the amount_pending needs to be updated
         $payment->amount_pending = $request->amount_pending;
+
         if ($payment->update()) {
             return $this->successResponse("Payment was updated!");
         }
-        return $this->errorMessage('Sorry. Something happends when trying to update the payment!', 409);
+        return $this->errorMessage('Ha ocurrido un error al intentar actualizar el pago!', 409);
+    }
+
+    public function destroy($id)
+    {
+        $payment = Payment::findOrFail($id);
+
+        // Check if the Payment is already assigned.
+        $breakdowns = $payment->has('breakdowns')->get();
+        if(count($breakdowns)) {
+            return $this->errorMessage('Lo sentimos, este pago ya se encuentra asignado a alguna factura, por lo que no puede ser eliminado.');
+        };
+
+        if ($payment->delete())
+        {
+            return $this->successResponse('La información del pago ha sido eliminada.');
+        }
+        return $this->errorMessage('Ha ocurrido un error al intentar eliminar el pago.');
     }
 }
