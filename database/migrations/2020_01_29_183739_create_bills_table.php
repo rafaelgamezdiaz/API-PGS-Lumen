@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBreakdownTable extends Migration
+class CreateBillsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -15,11 +15,11 @@ class CreateBreakdownTable extends Migration
     {
         Schema::create('bills', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('bills_ids');
-            $table->float('amount');
+            $table->unsignedBigInteger('bill_id');
+        //    $table->float('amount');
 
-            $table->unsignedBigInteger('payments_ids');
-            $table->foreign('payments_ids')
+            $table->unsignedBigInteger('payment_id');
+            $table->foreign('payment_id')
                   ->references('id')
                   ->on('payments');
 

@@ -66,7 +66,8 @@ class PaymentService extends BaseService
         $this->validate($request, $payment->rules_update());
 
         // Only the amount_pending needs to be updated
-        $payment->amount_pending = $request->amount_pending;
+        $payment->fill($request->all());
+        //$payment->amount_pending = $request->amount_pending;
 
         if ($payment->update()) {
             return $this->successResponse("Payment was updated!");
@@ -79,7 +80,7 @@ class PaymentService extends BaseService
         $payment = Payment::findOrFail($id);
 
         // Check if the Payment is already assigned.
-        $breakdowns = $payment->has('breakdowns')->get();
+        $breakdowns = $payment->has('bills')->get();
         if(count($breakdowns)) {
             return $this->errorMessage('Lo sentimos, este pago ya se encuentra asignado a alguna factura, por lo que no puede ser eliminado.');
         };
