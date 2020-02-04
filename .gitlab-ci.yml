@@ -1,0 +1,177 @@
+##
+# Ansible managed
+#
+
+stages:
+  - backup
+  - build
+  - deploy
+  - rollback
+
+
+dev_backup_job:
+  stage: backup
+  script:
+    - docker image tag devpay-api:latest devpay-api:prev || true
+  tags:
+    - devapp
+  only :
+    - develop
+
+dev_build_job:
+  stage: build
+  script:
+      - sed -i -e "s;^\s*APP_DEBUG=.*;APP_DEBUG=True;g" .env
+      - sed -i -e "s;^\s*DB_CONNECTION=.*;DB_CONNECTION=pgsql;g" .env
+      - sed -i -e "s;^\s*DB_HOST=.*;DB_HOST=192.168.0.10;g" .env
+      - sed -i -e "s;^\s*DB_PORT=.*;DB_PORT=5433;g" .env
+      - sed -i -e "s;^\s*DB_DATABASE=.*;DB_DATABASE=devpayment;g" .env
+      - sed -i -e "s;^\s*DB_USERNAME=.*;DB_USERNAME=devpayment;g" .env
+      - sed -i -e "s;^\s*DB_PASSWORD=.*;DB_PASSWORD=$DEV_DB_PASS;g" .env
+      - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://devpay.zippyttech.com/pay;g" .env
+      - docker build -t devpay-api .
+  when: on_success
+  tags:
+    - devapp
+  only :
+    - develop
+
+dev_deploy_job:
+  stage: deploy
+  script:
+    - docker stop devpay-api || true
+    - docker rm devpay-api || true
+    - docker run -d --restart always --name devpay-api -p 10089:80 devpay-api
+    - docker exec devpay-api php artisan migrate
+  when: on_success
+  tags:
+    - devapp
+  only:
+    - develop
+
+dev_rollback_job:
+  stage: rollback
+  script:
+    - docker stop devpay-api || true
+    - docker rm devpay-api || true
+    - docker image tag devpay-api:prev devpay-api:latest || true
+    - docker run -d --restart always --name devpay-api -p 10089:80 devpay-api
+  when: manual
+  tags:
+    - devapp
+  only:
+    - develop
+
+
+
+
+qa_backup_job:
+  stage: backup
+  script:
+    - docker image tag qapay-api:latest qapay-api:prev || true
+  tags:
+    - qaapp
+  only :
+    - QA
+
+qa_build_job:
+  stage: build
+  script:
+      - sed -i -e "s;^\s*APP_DEBUG=.*;APP_DEBUG=False;g" .env
+      - sed -i -e "s;^\s*DB_CONNECTION=.*;DB_CONNECTION=pgsql;g" .env
+      - sed -i -e "s;^\s*DB_HOST=.*;DB_HOST=10.0.0.25;g" .env
+      - sed -i -e "s;^\s*DB_PORT=.*;DB_PORT=5432;g" .env
+      - sed -i -e "s;^\s*DB_DATABASE=.*;DB_DATABASE=qapayment;g" .env
+      - sed -i -e "s;^\s*DB_USERNAME=.*;DB_USERNAME=qapayment;g" .env
+      - sed -i -e "s;^\s*DB_PASSWORD=.*;DB_PASSWORD=$QA_DB_PASS;g" .env
+      - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://qapay.zippyttech.com/pay;g" .env
+      - docker build -t qapay-api .
+  when: on_success
+  tags:
+    - qaapp
+  only :
+    - QA
+
+qa_deploy_job:
+  stage: deploy
+  script:
+    - docker stop qapay-api || true
+    - docker rm qapay-api || true
+    - docker run -d --restart always --name qapay-api -p 8070:80 qapay-api
+    - docker exec qapay-api php artisan migrate
+  when: on_success
+  tags:
+    - qaapp
+  only:
+    - QA
+
+qa_rollback_job:
+  stage: rollback
+  script:
+    - docker stop qapay-api || true
+    - docker rm qapay-api || true
+    - docker image tag qapay-api:prev qapay-api:latest || true
+    - docker run -d --restart always --name qapay-api -p 8070:80 qapay-api
+  when: manual
+  tags:
+    - qaapp
+  only:
+    - QA
+
+
+
+
+prod_backup_job:
+  stage: backup
+  script:
+    - docker image tag prodpay-api:latest prodpay-api:prev || true
+  tags:
+    - prodapp
+  only :
+    - tags
+
+prod_build_job:
+  stage: build
+  script:
+      - sed -i -e "s;^\s*APP_DEBUG=.*;APP_DEBUG=False;g" .env
+      - sed -i -e "s;^\s*DB_CONNECTION=.*;DB_CONNECTION=pgsql;g" .env
+      - sed -i -e "s;^\s*DB_HOST=.*;DB_HOST=10.0.0.31;g" .env
+      - sed -i -e "s;^\s*DB_PORT=.*;DB_PORT=5432;g" .env
+      - sed -i -e "s;^\s*DB_DATABASE=.*;DB_DATABASE=payment;g" .env
+      - sed -i -e "s;^\s*DB_USERNAME=.*;DB_USERNAME=payment;g" .env
+      - sed -i -e "s;^\s*DB_PASSWORD=.*;DB_PASSWORD=$PROD_DB_PASS;g" .env
+      - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://pay.zippyttech.com/pay;g" .env
+      - docker build -t prodpay-api .
+  when: on_success
+  tags:
+    - prodapp
+  only :
+    - tags
+
+prod_deploy_job:
+  stage: deploy
+  script:
+    - docker stop prodpay-api || true
+    - docker rm prodpay-api || true
+    - docker run -d --restart always --name prodpay-api -p 8015:80 prodpay-api
+    - docker exec prodpay-api php artisan migrate
+  when: on_success
+  tags:
+    - prodapp
+  only:
+    - tags
+
+prod_rollback_job:
+  stage: rollback
+  script:
+    - docker stop prodpay-api || true
+    - docker rm prodpay-api || true
+    - docker image tag prodpay-api:prev prodpay-api:latest || true
+    - docker run -d --restart always --name prodpay-api -p 8015:80 prodpay-api
+  when: manual
+  tags:
+    - prodapp
+  only:
+    - tags
+
+
