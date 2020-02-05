@@ -1,7 +1,6 @@
 ##
 # Ansible managed
 #
-
 stages:
   - backup
   - build
