@@ -40,7 +40,7 @@ dev_deploy_job:
   script:
     - docker stop devpay-api || true
     - docker rm devpay-api || true
-    - docker run -d --restart always --name devpay-api -p 10089:80 devpay-api
+    - docker run -d --restart always --name devpay-api -p 10078:80 devpay-api
     - docker exec devpay-api php artisan migrate
   when: on_success
   tags:
@@ -54,7 +54,7 @@ dev_rollback_job:
     - docker stop devpay-api || true
     - docker rm devpay-api || true
     - docker image tag devpay-api:prev devpay-api:latest || true
-    - docker run -d --restart always --name devpay-api -p 10089:80 devpay-api
+    - docker run -d --restart always --name devpay-api -p 10078:80 devpay-api
   when: manual
   tags:
     - devapp
