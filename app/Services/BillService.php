@@ -47,17 +47,6 @@ class BillService extends BaseService
         // Get the payment amount
         $payments_ids = collect($request->payment_id);
 
-        // Get Payments
-       /* $payments = array();
-        foreach ($payments_ids as $payment_id)
-        {
-            array_push($payments, [
-                collect(['id'])->combine($payment_id),
-                Payment::findOrFail($payment_id)->only(['amount_pending'])
-            ]);  //$payments->push(collect($payment_id, Payment::findOrFail($payment_id)->only(['amount_pending'])));
-        }
-
-        return $payments;*/
         $payments = collect();
         foreach ($payments_ids as $payment_id)
         {
@@ -69,13 +58,8 @@ class BillService extends BaseService
                     ]
                 )
             );
-
-            //$payments->push(collect($payment_id, Payment::findOrFail($payment_id)->only(['amount_pending'])));
         }
         $payments = $payments->sortBy('amount');
-        // Get the bill cost ordered by amount (from lower to high value)
-       // $bills_costs = $bills_ids->combine($ammounts);
-
 
         // Get Bills
         $contador = 0;
@@ -86,121 +70,44 @@ class BillService extends BaseService
                 collect(['id'])->combine($bill_id),
                 collect(['amount'])->combine($ammounts[$contador])]
             );
-            $contador++; //$payments->push(collect($payment_id, Payment::findOrFail($payment_id)->only(['amount_pending'])));
+            $contador++;
         }
 
-
-        // Process (Loop by bills)
-        /*$bills->each(function($bill) use($request) {
-             $this->byPayment($request, $bill);
-        });*/
-        $pa = 0;
-        $this->list = array();
         foreach ($bills as $bill)
         {
             foreach ($payments as $payment)
             {
-                $pids = $payment['id'];
-                $pamount = Payment::findOrFail($pids)->only(['amount_pending'])['amount_pending'];
-               // $pamount = $payment['amount'];
+                $payment_id = $payment['id'];
+                $pamount = Payment::findOrFail($payment_id)->only(['amount_pending'])['amount_pending'];
                 if ($pamount > 0) {
                     $quantity = $pamount - $bill[1]['amount'];
-
                     if ( $quantity  == 0) {
                         $amount_paid = $pamount;
-                        $this->cociliatePayment($request, $pids, $bill, $amount_paid);
-                        $this->updatePayment($pids, 0);
-                       // $payments['amount'] = 0; // Actualizo el amount pending de ese pago a 0
+                        $this->cociliatePayment($request, $payment_id, $bill, $amount_paid);
+                        $this->updatePayment($payment_id, 0);
                         $bill[1]['amount'] = 0;
-                        $pa = 0;
                     }else if ( $quantity  < 0) {
                         $amount_paid = $pamount;
-                        $this->cociliatePayment($request, $pids, $bill, $amount_paid);
-                        $this->updatePayment($pids, 0);
+                        $this->cociliatePayment($request, $payment_id, $bill, $amount_paid);
+                        $this->updatePayment($payment_id, 0);
                         $bill[1]['amount'] = - $quantity;
-                        $pa = 0;
-
                     }else if ( $quantity  > 0){
                         $amount_paid = $bill[1]['amount'];
                         if ($amount_paid > 0) {
-                            $this->cociliatePayment($request, $pids, $bill, $amount_paid);
-                            $this->updatePayment($pids, $quantity);
+                            $this->cociliatePayment($request, $payment_id, $bill, $amount_paid);
+                            $this->updatePayment($payment_id, $quantity);
                             $bill[1]['amount'] = 0;
-                            $pa = $quantity;
                         }
                     }
-                    array_push($this->list, [$pids,$pamount]);
                 }
             }
-            /*
-            $payments->each(function($payments) use($request, $bill){
-                if ($payments['amount'] > 0) {
-
-                }
-            });*/
-
-
-           /* for ($i = 0; $i < count($payments); $i++){
-
-
-
-
-            }*/
-
         }
-        /*foreach ($bills as $bill)
-        {
-            for ($i = 0; $i < count($payments); $i++){
-                $quantity = $payments[$i][1]['amount_pending'] - $bill[1]['amount'];
-
-                if ( $quantity  == 0) {
-
-                    $this->cociliatePayment($request, $payments[$i][0]['id'], $bill);
-
-                    // Actualizo el amount pending de ese pago a 0
-                    $payments[$i][1]['amount_pending'] = 0; // $payment[1]['amount_pending'] = 0;
-
-                }else if ( $quantity  < 0) {
-
-                    $this->cociliatePayment($request, $payments[$i][0]['id'], $bill);
-
-                    // Actualizo el amount pending de ese pago a 0
-                    $payments[$i][1]['amount_pending'] = 0; // $this->payments[1]['amount_pending'] = 0;
-
-                }else if ( $quantity  > 0){
-                    $payments[$i][1]['amount_pending'] = $quantity;
-                }
-
-            }
-
-        }*/
-
-        return $this->list;
-
-
-        /*$bills_costs->each(function($bills_costs) use($request, $payments) {
-            $this->byPayment($request, $payments, $bills_costs);
-        });*/
-
-
         return $this->successResponse('Asignación del pago realizada con éxito!');
-    }
-
-    public function byPayment($request, $bill)
-    {
-        // Loop by payments
-        $this->payments->each(function($payment) use($request, $bill) {
-
-
-
-        });
-
     }
 
     public function cociliatePayment($request, $payment, $bill, $amount_paid)
     {
         // REALIZAR POST AL ENDPOINT DE VENTAS
-
         return Bill::create([
             'payment_id'    => $payment,
             'bill_id'       => $bill[0]['id'],
