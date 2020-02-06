@@ -5,6 +5,7 @@
     "license": "MIT",
     "type": "project",
     "require": {
+        "ext-gd":"*"
         "php": "^7.2",
         "ext-json": "*",
         "dompdf/dompdf": "^0.8.4",
