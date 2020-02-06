@@ -45,7 +45,12 @@ class Payment extends BaseModel
     public function rules_update()
     {
         return [
-            'amount_pending'    => 'required|numeric'
+            'amount_pending'    => 'numeric',
+            'type_id'           => 'numeric',
+            'method_id'         => 'numeric',
+            'client_id'         => 'numeric',
+            'account'           => 'numeric',
+            'amount'            => 'numeric'
         ];
     }
 

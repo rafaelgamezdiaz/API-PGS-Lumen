@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Method extends BaseModel
 {
+    use SoftDeletes;
+
     protected $table = 'methods';
     protected $fillable = ['method'];
 

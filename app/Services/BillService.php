@@ -15,6 +15,8 @@ class BillService extends BaseService
 {
     use ApiResponser, ProvidesConvenienceMethods;
 
+    public $list;
+
     public function index($request)
     {
         if (isset($_GET['where'])) {
@@ -92,28 +94,51 @@ class BillService extends BaseService
         /*$bills->each(function($bill) use($request) {
              $this->byPayment($request, $bill);
         });*/
-
-
+        $pa = 0;
+        $this->list = array();
         foreach ($bills as $bill)
         {
-            $payments->each(function($payments) use($request, $bill){
-                $quantity = $payments['amount'] - $bill[1]['amount'];
-                if ( $quantity  == 0) {
-                    $this->cociliatePayment($request, $payments['id'], $bill);
+            foreach ($payments as $payment)
+            {
+                $pids = $payment['id'];
+                $pamount = Payment::findOrFail($pids)->only(['amount_pending'])['amount_pending'];
+               // $pamount = $payment['amount'];
+                if ($pamount > 0) {
+                    $quantity = $pamount - $bill[1]['amount'];
 
-                    // Actualizo el amount pending de ese pago a 0
-                    $payments['amount'] = 0; // $payment[1]['amount_pending'] = 0;
+                    if ( $quantity  == 0) {
+                        $amount_paid = $pamount;
+                        $this->cociliatePayment($request, $pids, $bill, $amount_paid);
+                        $this->updatePayment($pids, 0);
+                       // $payments['amount'] = 0; // Actualizo el amount pending de ese pago a 0
+                        $bill[1]['amount'] = 0;
+                        $pa = 0;
+                    }else if ( $quantity  < 0) {
+                        $amount_paid = $pamount;
+                        $this->cociliatePayment($request, $pids, $bill, $amount_paid);
+                        $this->updatePayment($pids, 0);
+                        $bill[1]['amount'] = - $quantity;
+                        $pa = 0;
 
-                }else if ( $quantity  < 0) {
-                    $this->cociliatePayment($request, $payments['id'], $bill);
-
-                    // Actualizo el amount pending de ese pago a 0
-                    $payments['amount'] = 0; // $this->payments[1]['amount_pending'] = 0;
-
-                }else if ( $quantity  > 0){
-                    $payments['amount'] = $quantity;
+                    }else if ( $quantity  > 0){
+                        $amount_paid = $bill[1]['amount'];
+                        if ($amount_paid > 0) {
+                            $this->cociliatePayment($request, $pids, $bill, $amount_paid);
+                            $this->updatePayment($pids, $quantity);
+                            $bill[1]['amount'] = 0;
+                            $pa = $quantity;
+                        }
+                    }
+                    array_push($this->list, [$pids,$pamount]);
                 }
-            });
+            }
+            /*
+            $payments->each(function($payments) use($request, $bill){
+                if ($payments['amount'] > 0) {
+
+                }
+            });*/
+
 
            /* for ($i = 0; $i < count($payments); $i++){
 
@@ -150,7 +175,7 @@ class BillService extends BaseService
 
         }*/
 
-        return $payments;
+        return $this->list;
 
 
         /*$bills_costs->each(function($bills_costs) use($request, $payments) {
@@ -172,7 +197,7 @@ class BillService extends BaseService
 
     }
 
-    public function cociliatePayment($request, $payment, $bill)
+    public function cociliatePayment($request, $payment, $bill, $amount_paid)
     {
         // REALIZAR POST AL ENDPOINT DE VENTAS
 
@@ -180,8 +205,16 @@ class BillService extends BaseService
             'payment_id'    => $payment,
             'bill_id'       => $bill[0]['id'],
             'username'      => $request->username,
-            'account'       => $request->account
+            'account'       => $request->account,
+            'amount_paid'   => $amount_paid
         ]);
+    }
+
+    public function updatePayment($id, $amount)
+    {
+        $payment = Payment::findOrFail($id);
+        $payment->amount_pending = $amount;
+        return ($payment->update()) ? 1: null;
     }
 
     public function getPayment()

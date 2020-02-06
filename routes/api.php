@@ -12,7 +12,7 @@
 */
 
 
-$router->group(['prefix' => 'pa', 'middleware' => 'auth'], function () use ($router) {  // , 'middleware' => 'auth'
+$router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($router) {  // , 'middleware' => 'auth'
 
     // PAYMENT ROUTES
     $router->get('payments/', 'Payment\PaymentController@index');
@@ -21,6 +21,9 @@ $router->group(['prefix' => 'pa', 'middleware' => 'auth'], function () use ($rou
     $router->put('payments/{id}', 'Payment\PaymentController@update');
     $router->patch('payments/{id}', 'Payment\PaymentController@update');
     $router->delete('payments/{id}', 'Payment\PaymentController@destroy');
+
+    // PAYMENTS BY CLIENT
+    $router->get('payments/{id}/client', 'Payment\PaymentClientController@index');
 
     // BILLS ROUTES
     $router->get('bills/', 'Bill\BillController@index');

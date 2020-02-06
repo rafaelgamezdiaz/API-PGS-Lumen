@@ -2,3 +2,5 @@
 /.idea
 Homestead.json
 Homestead.yaml
+composer.lock
+/nginx
