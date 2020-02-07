@@ -191,9 +191,9 @@ class ReportService
                 $total_operaciones++;
                 $arrayData[] = $toExcel;
             }
-            // $arrayData[] = ['Total de Operaciones', $total_operaciones];
-            $sheet->getActiveSheet()->setCellValue("A6","Total de Operaciones: ");
-            $sheet->getActiveSheet()->setCellValue("B6",$total_operaciones); //->refreshColumnDimensions();
+            $arrayData[] = ['Total de Operaciones', $total_operaciones];
+           // $sheet->getActiveSheet()->setCellValue("A6","Total de Operaciones: ");
+           // $sheet->getActiveSheet()->setCellValue("B6",$total_operaciones); //->refreshColumnDimensions();
             $sheet->getActiveSheet()->fromArray($arrayData, "Sin Registro", 'A8')->refreshColumnDimensions();
 
             $writer = IOFactory::createWriter($spreadsheet, "Xlsx");

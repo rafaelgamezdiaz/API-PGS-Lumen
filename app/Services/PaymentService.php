@@ -63,6 +63,13 @@ class PaymentService extends BaseService
     public function update($request, $id)
     {
         $payment = Payment::findOrFail($id);
+
+        // Check if the Payment is already assigned.
+        $bills = $payment->has('bills')->get();
+        if(count($bills)) {
+            return $this->errorMessage('Lo sentimos, este pago ya se encuentra asignado a alguna factura, por lo que no puede ser actualizado.');
+        };
+
         $this->validate($request, $payment->rules_update());
 
         // Only the amount_pending needs to be updated
