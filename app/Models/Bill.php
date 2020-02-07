@@ -14,7 +14,8 @@ class Bill extends BaseModel
         'bill_id',
         'amount',
         'username',
-        'account'
+        'account',
+        'amount_paid'
     ];
 
     protected $hidden = ['payment'];

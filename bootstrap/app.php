@@ -1,12 +1,12 @@
 <?php
 
-use Flipbox\LumenGenerator\LumenGeneratorServiceProvider;
+require_once __DIR__ . '/../vendor/autoload.php';
 
-require_once __DIR__.'/../vendor/autoload.php';
-
-(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
-    dirname(__DIR__)
-))->bootstrap();
+try {
+    (new Dotenv\Dotenv(__DIR__ . '/../'))->load();
+} catch (Dotenv\Exception\InvalidPathException $e) {
+    //
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -20,20 +20,12 @@ require_once __DIR__.'/../vendor/autoload.php';
 */
 
 $app = new Laravel\Lumen\Application(
-    dirname(__DIR__)
+    realpath(__DIR__ . '/../')
 );
 
 $app->withFacades();
 
 $app->withEloquent();
-
-
-/**
- * Registering config files
- */
-$app->configure('services');
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -67,11 +59,15 @@ $app->singleton(
 |
 */
 
- $app->middleware(['Nord\Lumen\Cors\CorsMiddleware']);
 
- $app->routeMiddleware([
+$app->routeMiddleware([
      'auth' => App\Http\Middleware\Authenticate::class,
  ]);
+
+$app->middleware([
+
+    Nord\Lumen\Cors\CorsMiddleware::class
+]);
 
 /*
 |--------------------------------------------------------------------------
@@ -84,19 +80,10 @@ $app->singleton(
 |
 */
 
- $app->register(App\Providers\AppServiceProvider::class);
-
-// Registering Lumen Generator (tu use artisan generator in local enviroment)
-if (env('APP_ENV') != 'production' || env('APP_ENV') == 'local') {
-    $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
-}
-
-// Registering CORS
-$app->register('Nord\Lumen\Cors\CorsServiceProvider');
-
+$app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
-
+$app->register(Nord\Lumen\Cors\CorsServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
@@ -107,12 +94,13 @@ $app->register('Nord\Lumen\Cors\CorsServiceProvider');
 | can respond to, as well as the controllers that may handle them.
 |
 */
+$app->configure('cors');
+$app->configure('services');
 
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
 ], function ($router) {
-    require __DIR__.'/../routes/web.php';
-    require __DIR__.'/../routes/api.php';
+    require __DIR__ . '/../routes/api.php';
 });
 
 return $app;

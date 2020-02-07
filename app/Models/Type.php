@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Type extends BaseModel
 {
+    use SoftDeletes;
+
     protected $table = 'types';
     protected $fillable = ['type'];
 
