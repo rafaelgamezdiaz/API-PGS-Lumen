@@ -95,6 +95,7 @@ $app->register(Nord\Lumen\Cors\CorsServiceProvider::class);
 |
 */
 $app->configure('cors');
+$app->configure('services');
 
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
