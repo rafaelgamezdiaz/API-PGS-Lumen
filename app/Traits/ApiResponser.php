@@ -40,7 +40,7 @@ trait ApiResponser
      */
     public function errorMessage($message, $code = Response::HTTP_CONFLICT)
     {
-        return response()->json(['error' => $message, 'status' => $code], $code)->header('Content-Type', 'application/json');
+        return response()->json(['message' => $message, 'status' => $code], $code)->header('Content-Type', 'application/json');
     }
 
 
