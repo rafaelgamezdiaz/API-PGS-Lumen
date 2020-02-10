@@ -25,9 +25,7 @@ class CreateBillsTable extends Migration
 
             $table->string('username');
             $table->integer('account');
-            $table->float('amount_paid')->default(0);
 
-            $table->softDeletes();
             $table->timestamps();
         });
     }
