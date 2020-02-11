@@ -55,25 +55,31 @@ class BillService extends BaseService
         // Get Bills
         $bills = $this->getBillsAmountPending($bills_ids, $amounts);
 
+        $number_of_conciliations = 0;
         foreach ($bills as $bill)
         {
             foreach ($payments as $payment)
             {
                 $payment_id = $payment['id'];
-                $amount_pending = Payment::findOrFail($payment_id)->only(['amount_pending'])['amount_pending'];
-                if ($amount_pending > 0) {
-                    $quantity = $amount_pending - $bill[1]['amount'];
+                $amount_available = Payment::findOrFail($payment_id)->only(['amount_pending'])['amount_pending'];
+
+                if ($amount_available > 0) {
+                    $quantity = $amount_available - $bill[1]['amount'];
                     if ( $quantity  <= 0) {
-                        $bill[1]['amount'] = $this->doConciliation($request, $quantity, $amount_pending, $payment_id, $bill);
+                        $bill[1]['amount'] = $this->doConciliation($request, $quantity, $amount_available, $payment_id, $bill);
                     }else if ( $quantity  > 0){
                         if ($bill[1]['amount'] > 0) {
                             $bill[1]['amount'] = $this->doConciliation($request, $quantity, $bill[1]['amount'], $payment_id, $bill);
                         }
                     }
+                    $number_of_conciliations++;
                 }
             }
         }
-        return $this->successResponse('Asignación del pago realizada con éxito!');
+        if ($number_of_conciliations) {
+            return $this->successResponse('Asignación del pago realizada con éxito!');
+        }
+        return $this->errorMessage('No hay monto disponible en los pagos seleccionados!');
     }
 
     public function getBillsAmountPending($bills_ids, $amounts)
@@ -115,8 +121,13 @@ class BillService extends BaseService
     {
         $amount_paid = $amount_pending;
         $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
-        $this->updatePayment($payment_id, abs($quantity));
-        return $quantity >= 0 ? 0 : -$quantity;
+        $this->updatePayment($payment_id, $this->nonNullQuantities($quantity));
+        return $quantity >= 0 ? 0 : abs($quantity);
+    }
+
+    private function nonNullQuantities($quantity)
+    {
+        return $quantity > 0 ? $quantity : 0;
     }
 
     /**
@@ -134,16 +145,7 @@ class BillService extends BaseService
             $bill->username = $request->username;
             $bill->account = $request->account;
             $bill->amount_paid = $amount_paid;
-
             $bill->save();
-            /*return Bill::create([
-                'payment_id'    => $payment_id,
-                'bill_id'       => $bill_id,
-                'username'      => $request->username,
-                'account'       => $request->account,
-                'amount_paid'   => $amount_paid
-            ]);*/
-
             DB::commit();
         }
         catch (\Exception $e){
@@ -170,52 +172,4 @@ class BillService extends BaseService
         $payment->amount_pending = $amount;
         return ($payment->update()) ? 1: null;
     }
-
-    public function getPayment()
-    {
-        Payment::findOrFail($payments_ids);
-    }
-
-    public function show($request, $id){
-
-    }
-
-    /**
-     * Update the Payment
-     */
-    public function update($request, $id)
-    {
-
-    }
-
-    public function destroy($id)
-    {
-
-    }
 }
-
-
-/*
- * if ($amount_pending > 0) {
-                    $quantity = $amount_pending - $bill[1]['amount'];
-                    if ( $quantity  == 0) {
-                        $amount_paid = $amount_pending;
-                        $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
-                        $this->updatePayment($payment_id, 0);
-                        $bill[1]['amount'] = 0;
-                    }else if ( $quantity  < 0) {
-                        $amount_paid = $amount_pending;
-                        $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
-                        $this->updatePayment($payment_id, 0);
-                        $bill[1]['amount'] = - $quantity;
-                    }else if ( $quantity  > 0){
-                        $amount_paid = $bill[1]['amount'];
-                        if ($amount_paid > 0) {
-                            $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
-                            $this->updatePayment($payment_id, $quantity);
-                            $bill[1]['amount'] = 0;
-                        }
-                    }
-                }
-
- */
