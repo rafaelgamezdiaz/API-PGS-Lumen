@@ -27,7 +27,7 @@ dev_build_job:
       - sed -i -e "s;^\s*DB_DATABASE=.*;DB_DATABASE=devpayment;g" .env
       - sed -i -e "s;^\s*DB_USERNAME=.*;DB_USERNAME=devpayment;g" .env
       - sed -i -e "s;^\s*DB_PASSWORD=.*;DB_PASSWORD=$DEV_DB_PASS;g" .env
-      - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://devpay.zippyttech.com/pay;g" .env
+      - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://devpay.zippyttech.com/;g" .env
       - docker build -t devpay-api .
   when: on_success
   tags:
@@ -83,7 +83,7 @@ qa_build_job:
       - sed -i -e "s;^\s*DB_DATABASE=.*;DB_DATABASE=qapayment;g" .env
       - sed -i -e "s;^\s*DB_USERNAME=.*;DB_USERNAME=qapayment;g" .env
       - sed -i -e "s;^\s*DB_PASSWORD=.*;DB_PASSWORD=$QA_DB_PASS;g" .env
-      - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://qapay.zippyttech.com/pay;g" .env
+      - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://qapay.zippyttech.com/;g" .env
       - docker build -t qapay-api .
   when: on_success
   tags:
@@ -139,7 +139,7 @@ prod_build_job:
       - sed -i -e "s;^\s*DB_DATABASE=.*;DB_DATABASE=payment;g" .env
       - sed -i -e "s;^\s*DB_USERNAME=.*;DB_USERNAME=payment;g" .env
       - sed -i -e "s;^\s*DB_PASSWORD=.*;DB_PASSWORD=$PROD_DB_PASS;g" .env
-      - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://pay.zippyttech.com/pay;g" .env
+      - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://pay.zippyttech.com/;g" .env
       - docker build -t prodpay-api .
   when: on_success
   tags:
