@@ -44,69 +44,95 @@ class BillService extends BaseService
     {
         $this->validate($request, $bill->rules());
         $bills_ids = collect($request->bill_id);
-        $ammounts = collect($request->amount);  // Bills amount
+        $amounts = collect($request->amount);  // Bills amount
 
-        // Get the payment amount
+        // Get the payment amount ids
         $payments_ids = collect($request->payment_id);
 
-        $payments = collect();
-        foreach ($payments_ids as $payment_id)
-        {
-            $payments->push(
-                collect(
-                    [
-                        'id' => $payment_id,
-                        'amount' => Payment::findOrFail($payment_id)->only(['amount_pending'])['amount_pending']
-                    ]
-                )
-            );
-        }
-        $payments = $payments->sortBy('amount');
+        // Get amounts available in payments
+        $payments = $this->getAmountsAvailable($payments_ids);
 
         // Get Bills
-        $contador = 0;
-        $bills = collect();
-        foreach ($bills_ids as $bill_id)
-        {
-            $bills->push([
-                collect(['id'])->combine($bill_id),
-                collect(['amount'])->combine($ammounts[$contador])]
-            );
-            $contador++;
-        }
+        $bills = $this->getBillsAmountPending($bills_ids, $amounts);
 
+        $number_of_conciliations = 0;
         foreach ($bills as $bill)
         {
             foreach ($payments as $payment)
             {
                 $payment_id = $payment['id'];
-                $pamount = Payment::findOrFail($payment_id)->only(['amount_pending'])['amount_pending'];
-                if ($pamount > 0) {
-                    $quantity = $pamount - $bill[1]['amount'];
-                    if ( $quantity  == 0) {
-                        $amount_paid = $pamount;
-                        $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
-                        $this->updatePayment($payment_id, 0);
-                        $bill[1]['amount'] = 0;
-                    }else if ( $quantity  < 0) {
-                        $amount_paid = $pamount;
-                        $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
-                        $this->updatePayment($payment_id, 0);
-                        $bill[1]['amount'] = - $quantity;
+                $amount_available = Payment::findOrFail($payment_id)->only(['amount_pending'])['amount_pending'];
+
+                if ($amount_available > 0) {
+                    $quantity = $amount_available - $bill[1]['amount'];
+                    if ( $quantity  <= 0) {
+                        $bill[1]['amount'] = $this->doConciliation($request, $quantity, $amount_available, $payment_id, $bill);
                     }else if ( $quantity  > 0){
-                        $amount_paid = $bill[1]['amount'];
-                        if ($amount_paid > 0) {
-                            $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
-                            $this->updatePayment($payment_id, $quantity);
-                            $bill[1]['amount'] = 0;
+                        if ($bill[1]['amount'] > 0) {
+                            $bill[1]['amount'] = $this->doConciliation($request, $quantity, $bill[1]['amount'], $payment_id, $bill);
                         }
                     }
+                    $number_of_conciliations++;
                 }
             }
         }
-        return $this->successResponse('Asignación del pago realizada con éxito!');
+        if ($number_of_conciliations) {
+            return $this->successResponse('Asignación del pago realizada con éxito!');
+        }
+        return $this->errorMessage('No hay monto disponible en los pagos seleccionados!');
     }
 
+    public function getBillsAmountPending($bills_ids, $amounts)
+    {
+        $contador = 0;
+        $bills = collect();
+        foreach ($bills_ids as $bill_id)
+        {
+            $bills->push([
+                    collect(['id'])->combine($bill_id),
+                    collect(['amount'])->combine($amounts[$contador])]
+            );
+            $contador++;
+        }
+        return $bills;
+    }
+
+    /**
+     * Return payment available corresponding to ids selected by the user
+     */
+    public function getAmountsAvailable($payments_ids)
+    {
+        $payments = collect();
+        foreach ($payments_ids as $payment_id)
+        {
+            $payments->push(
+                collect(['id' => $payment_id,
+                        'amount' => Payment::findOrFail($payment_id)
+                            ->only(['amount_pending'])['amount_pending']])
+            );
+        }
+        return $payments->sortBy('amount')->where('amount','>',0);
+    }
+
+    /**
+     * Mannage the conciliation to bills, also update the amount available fot the payment
+     */
+    public function doConciliation($request, $quantity, $amount_pending, $payment_id, $bill)
+    {
+        $amount_paid = $amount_pending;
+        $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
+        $this->updatePayment($payment_id, $this->nonNullQuantities($quantity));
+        return $quantity >= 0 ? 0 : abs($quantity);
+    }
+
+    private function nonNullQuantities($quantity)
+    {
+        return $quantity > 0 ? $quantity : 0;
+    }
+
+    /**
+     * Do the conciliation in bills table
+     */
     public function cociliatePayment($request, $payment_id, $bill_id, $amount_paid)
     {
         // REALIZAR POST AL ENDPOINT DE VENTAS
@@ -114,21 +140,12 @@ class BillService extends BaseService
             DB::beginTransaction();
 
             $bill = new Bill();
-            $bill->payment_id = $payment_id;
             $bill->bill_id = $bill_id;
+            $bill->payment_id = $payment_id;
             $bill->username = $request->username;
             $bill->account = $request->account;
             $bill->amount_paid = $amount_paid;
-
-
-            /*return Bill::create([
-                'payment_id'    => $payment_id,
-                'bill_id'       => $bill_id,
-                'username'      => $request->username,
-                'account'       => $request->account,
-                'amount_paid'   => $amount_paid
-            ]);*/
-
+            $bill->save();
             DB::commit();
         }
         catch (\Exception $e){
@@ -154,27 +171,5 @@ class BillService extends BaseService
         $payment = Payment::findOrFail($id);
         $payment->amount_pending = $amount;
         return ($payment->update()) ? 1: null;
-    }
-
-    public function getPayment()
-    {
-        Payment::findOrFail($payments_ids);
-    }
-
-    public function show($request, $id){
-
-    }
-
-    /**
-     * Update the Payment
-     */
-    public function update($request, $id)
-    {
-
-    }
-
-    public function destroy($id)
-    {
-
     }
 }
