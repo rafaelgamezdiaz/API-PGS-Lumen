@@ -42,7 +42,7 @@ class PaymentService extends BaseService
         $payment->fill($request->all());
         $payment->amount_pending = $request->amount;
         if ($payment->save()) {
-            return $this->successResponse('Payment was saved!', $payment);
+            return $this->successResponse('Pago registrado con éxito.', $payment);
         };
         return $this->errorMessage('Ha ocurrido un error al intentar guardar el pago.');
     }
@@ -77,9 +77,9 @@ class PaymentService extends BaseService
         //$payment->amount_pending = $request->amount_pending;
 
         if ($payment->update()) {
-            return $this->successResponse("Payment was updated!");
+            return $this->successResponse("Pago actualizado con éxito.");
         }
-        return $this->errorMessage('Ha ocurrido un error al intentar actualizar el pago!', 409);
+        return $this->errorMessage('Ha ocurrido un error al intentar actualizar el pago.', 409);
     }
 
     public function destroy($id)
@@ -123,5 +123,23 @@ class PaymentService extends BaseService
         });
 
         return $this->successResponse("Lista de Pagos del Cliente", $payments);
+    }
+
+    /**
+     * Full payment of a Bill
+     * Created to storage a payment from API-Ventas
+     * $request->amount Is the total amount to pay of the bill
+     */
+    public function billFullPayment($request, $payment, $billService)
+    {
+        $this->validate($request, $payment->rulesFullBillPayment());
+        $payment->fill($request->all());
+        $payment->amount_pending = 0;
+
+        if ($payment->save()) {
+            $billService->cociliatePayment($request, $payment->id, $request->bill_id, $request->amount);
+            return $this->successResponse('Pago total de la factura registrado con éxito.', $payment);
+        };
+        return $this->errorMessage('Ha ocurrido un error al intentar guardar el pago.');
     }
 }

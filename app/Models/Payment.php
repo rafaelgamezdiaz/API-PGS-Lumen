@@ -54,6 +54,19 @@ class Payment extends BaseModel
         ];
     }
 
+    public function rulesFullBillPayment()
+    {
+        return [
+            'type_id'           => 'required|numeric',
+            'method_id'         => 'required|numeric',
+            'client_id'         => 'required|numeric',
+            'username'          => 'required',
+            'account'           => 'required|numeric',
+            'amount'            => 'required|numeric',
+            'bill_id'           => 'required|numeric'
+        ];
+    }
+
     public function isAvailable()
     {
         return $this->status == Payment::PAYMENT_STATUS_AVAILABLE;

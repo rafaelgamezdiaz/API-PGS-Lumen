@@ -9,7 +9,9 @@ use App\Models\Payment;
 use App\Traits\ApiResponser;
 use function foo\func;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\ProvidesConvenienceMethods;
+use PDOException;
 
 class BillService extends BaseService
 {
@@ -83,18 +85,18 @@ class BillService extends BaseService
                     $quantity = $pamount - $bill[1]['amount'];
                     if ( $quantity  == 0) {
                         $amount_paid = $pamount;
-                        $this->cociliatePayment($request, $payment_id, $bill, $amount_paid);
+                        $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
                         $this->updatePayment($payment_id, 0);
                         $bill[1]['amount'] = 0;
                     }else if ( $quantity  < 0) {
                         $amount_paid = $pamount;
-                        $this->cociliatePayment($request, $payment_id, $bill, $amount_paid);
+                        $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
                         $this->updatePayment($payment_id, 0);
                         $bill[1]['amount'] = - $quantity;
                     }else if ( $quantity  > 0){
                         $amount_paid = $bill[1]['amount'];
                         if ($amount_paid > 0) {
-                            $this->cociliatePayment($request, $payment_id, $bill, $amount_paid);
+                            $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
                             $this->updatePayment($payment_id, $quantity);
                             $bill[1]['amount'] = 0;
                         }
@@ -105,16 +107,46 @@ class BillService extends BaseService
         return $this->successResponse('Asignación del pago realizada con éxito!');
     }
 
-    public function cociliatePayment($request, $payment, $bill, $amount_paid)
+    public function cociliatePayment($request, $payment_id, $bill_id, $amount_paid)
     {
         // REALIZAR POST AL ENDPOINT DE VENTAS
-        return Bill::create([
-            'payment_id'    => $payment,
-            'bill_id'       => $bill[0]['id'],
-            'username'      => $request->username,
-            'account'       => $request->account,
-            'amount_paid'   => $amount_paid
-        ]);
+        try {
+            DB::beginTransaction();
+
+            $bill = new Bill();
+            $bill->payment_id = $payment_id;
+            $bill->bill_id = $bill_id;
+            $bill->username = $request->username;
+            $bill->account = $request->account;
+            $bill->amount_paid = $amount_paid;
+
+
+            /*return Bill::create([
+                'payment_id'    => $payment_id,
+                'bill_id'       => $bill_id,
+                'username'      => $request->username,
+                'account'       => $request->account,
+                'amount_paid'   => $amount_paid
+            ]);*/
+
+            DB::commit();
+        }
+        catch (\Exception $e){
+            DB::rollback();
+            return response()->json([
+                "status" => 500,
+                "message" => "No se ha podido registrar el pago total de la factura:"
+            ], 500);
+        }
+    }
+
+    public function errorExceptionSpace(\Exception $e)
+    {
+        if(($e->getCode() == '23P01') && ($e instanceof PDOException))
+        {
+
+        }
+        return parent::errorException($e);
     }
 
     public function updatePayment($id, $amount)

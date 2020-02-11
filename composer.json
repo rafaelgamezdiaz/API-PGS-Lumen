@@ -12,7 +12,8 @@
         "dompdf/dompdf": "^0.8.2",
         "phpoffice/phpspreadsheet": "^1.4",
         "guzzlehttp/guzzle": "^6.3",
-      "ext-json": "*"
+        "ext-json": "*",
+        "ext-pdo": "*"
     },
     "repositories": {
         "packagist": { "url": "https://packagist.org", "type": "composer" }
