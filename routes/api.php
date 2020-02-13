@@ -23,7 +23,7 @@ $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($ro
     $router->delete('payments/{id}', 'Payment\PaymentController@destroy');
 
     // FULL PAYMENT FROM API-VENTAS
-    $router->post('payments/full-bill-payment', 'Payment\PaymentBillController@store');
+    $router->post('payments/fullpayment', 'Payment\PaymentBillController@store');
 
     // PAYMENTS BY CLIENT
     $router->get('payments/{id}/client', 'Payment\PaymentClientController@index');

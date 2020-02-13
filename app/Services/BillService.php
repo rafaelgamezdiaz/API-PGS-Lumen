@@ -40,11 +40,12 @@ class BillService extends BaseService
         return $this->successResponse("Lista de asignaciones de pagos.", $bills);
     }
 
+    /**
+     * Create a new Bills-Payments conciliation
+     */
     public function store($request, $bill)
     {
         $this->validate($request, $bill->rules());
-        $bills_ids = collect($request->bill_id);
-        $amounts = collect($request->amount);  // Bills amount
 
         // Get the payment amount ids
         $payments_ids = collect($request->payment_id);
@@ -52,10 +53,11 @@ class BillService extends BaseService
         // Get amounts available in payments
         $payments = $this->getAmountsAvailable($payments_ids);
 
-        // Get Bills
+        // Get Bills Amount Pending
+        $bills_ids = collect($request->bill_id);
+        $amounts = collect($request->amount);  // Bills amount (from API-ventas)
         $bills = $this->getBillsAmountPending($bills_ids, $amounts);
 
-        $number_of_conciliations = 0;
         foreach ($bills as $bill)
         {
             foreach ($payments as $payment)
@@ -72,16 +74,15 @@ class BillService extends BaseService
                             $bill[1]['amount'] = $this->doConciliation($request, $quantity, $bill[1]['amount'], $payment_id, $bill);
                         }
                     }
-                    $number_of_conciliations++;
                 }
             }
         }
-        if ($number_of_conciliations) {
-            return $this->successResponse('Asignación del pago realizada con éxito!');
-        }
-        return $this->errorMessage('No hay monto disponible en los pagos seleccionados!');
+        return $this->successResponse('Asignación del pago realizada con éxito!');
     }
 
+    /**
+     * Return Bills pending amount to pay
+     */
     public function getBillsAmountPending($bills_ids, $amounts)
     {
         $contador = 0;
@@ -146,6 +147,8 @@ class BillService extends BaseService
             $bill->account = $request->account;
             $bill->amount_paid = $amount_paid;
             $bill->save();
+
+           //  = $clientService->getClient($request, $payments->client_id, false);
             DB::commit();
         }
         catch (\Exception $e){
@@ -170,6 +173,9 @@ class BillService extends BaseService
     {
         $payment = Payment::findOrFail($id);
         $payment->amount_pending = $amount;
-        return ($payment->update()) ? 1: null;
+        if ($amount == 0) {
+            $payment->status = Payment::PAYMENT_STATUS_ASSIGNED;
+        }
+        return ($payment->update()) ? true : null;
     }
 }

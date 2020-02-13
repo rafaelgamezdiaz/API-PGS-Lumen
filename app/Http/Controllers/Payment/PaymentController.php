@@ -43,7 +43,6 @@ class PaymentController extends Controller
         return $paymentService->update($request, $id);
     }
 
-
      /**
      * Remove a Payment
      */

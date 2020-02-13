@@ -14,7 +14,7 @@ class PaymentBillController extends Controller
 {
 
      /**
-     * Store a full Payment of a Bill
+     * Store a full Payment of a Bill (The bill is created in Ventas module and inmediatly payed)
      */
     public function store(Request $request, Payment $payment, PaymentService $paymentService, BillService $billService)
     {

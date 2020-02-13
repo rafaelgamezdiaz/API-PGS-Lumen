@@ -42,6 +42,4 @@ trait ApiResponser
     {
         return response()->json(['message' => $message, 'status' => $code], $code)->header('Content-Type', 'application/json');
     }
-
-
 }

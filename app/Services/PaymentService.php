@@ -4,6 +4,7 @@
 namespace App\Services;
 
 
+use App\Models\Bill;
 use App\Models\Payment;
 use App\Traits\ApiResponser;
 use Laravel\Lumen\Routing\ProvidesConvenienceMethods;
@@ -12,16 +13,21 @@ class PaymentService extends BaseService
 {
     use ApiResponser, ProvidesConvenienceMethods;
 
+    /**
+     * Return payment list
+     */
     public function index($request, $clientService, $userService)
     {
         if (isset($_GET['where'])) {
             $payments = Payment::doWhere($request)
                 ->where('account', $this->account)
+                ->where('status', Payment::PAYMENT_STATUS_AVAILABLE)
                 ->orderBy('created_at', 'desc')
                 ->get();
         }
         else{
             $payments =  Payment::where('account', $this->account)
+                ->where('status', Payment::PAYMENT_STATUS_AVAILABLE)
                 ->orderBy('created_at', 'desc')
                 ->get();
         }
@@ -36,6 +42,9 @@ class PaymentService extends BaseService
         return $this->successResponse("Lista de Pagos", $payments);
     }
 
+    /**
+     * Store a payment
+     */
     public function store($request, $payment)
     {
         $this->validate($request, $payment->rules());
@@ -47,8 +56,12 @@ class PaymentService extends BaseService
         return $this->errorMessage('Ha ocurrido un error al intentar guardar el pago.');
     }
 
+    /**
+     * Show payment details
+     */
     public function show($request, $id, $clientService, $userService){
-        $payment = Payment::findOrFail($id);
+        $payment = Payment::findOrFail($id)
+                           ->where('status', Payment::PAYMENT_STATUS_AVAILABLE);
         $payment->type;
         $payment->method;
         $payment->client = $clientService->getClient($request, $payment->client_id, false);
@@ -58,7 +71,7 @@ class PaymentService extends BaseService
     }
 
     /**
-     * Update the Subscription
+     * Update payment info
      */
     public function update($request, $id)
     {
@@ -82,6 +95,9 @@ class PaymentService extends BaseService
         return $this->errorMessage('Ha ocurrido un error al intentar actualizar el pago.', 409);
     }
 
+    /**
+     * Delete a payment ( only if it has not been conciliated with a bill )
+     */
     public function destroy($id)
     {
         $payment = Payment::findOrFail($id);
@@ -99,11 +115,15 @@ class PaymentService extends BaseService
         return $this->errorMessage('Ha ocurrido un error al intentar eliminar el pago.');
     }
 
+    /**
+     * Return payments of an specific client
+     */
     public function clientPayments($request, $id, $clientService, $userService)
     {
         if (isset($_GET['where'])) {
             $payments = Payment::doWhere($request)
                 ->where('account', $this->account)
+                ->where('status', Payment::PAYMENT_STATUS_AVAILABLE)
                 ->where('client_id', $id)
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -111,6 +131,7 @@ class PaymentService extends BaseService
         else{
             $payments =  Payment::where('account', $this->account)
                 ->where('client_id', $id)
+                ->where('status', Payment::PAYMENT_STATUS_AVAILABLE)
                 ->orderBy('created_at', 'desc')
                 ->get();
         }
@@ -136,10 +157,27 @@ class PaymentService extends BaseService
         $payment->fill($request->all());
         $payment->amount_pending = 0;
 
+        if ( $this->checkBillConciliated($request->bill_id) ) {
+            return $this->errorMessage('Esa factura ya ya sido conciliada previamente');
+        }
+
         if ($payment->save()) {
-            $billService->cociliatePayment($request, $payment->id, $request->bill_id, $request->amount);
-            return $this->successResponse('Pago total de la factura registrado con éxito.', $payment);
+            Bill::create([
+                'bill_id'       => $request->bill_id,
+                'payment_id'    => $payment->id,
+                'username'     => $request->username,
+                'account'       => $request->account,
+                'amount_paid'   => $request->amount
+            ]);
+            if ( $billService->updatePayment($payment->id, 0) ) {
+                return $this->successResponse('Pago total de la factura registrado con éxito.', $payment);
+            }
         };
-        return $this->errorMessage('Ha ocurrido un error al intentar guardar el pago.');
+        return $this->errorMessage('Ha ocurrido un error al intentar realizar el pago de la factura.');
+    }
+
+    public function checkBillConciliated ( $bill_id )
+    {
+        return count(Bill::where('bill_id',$bill_id)->get());
     }
 }
