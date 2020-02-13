@@ -28,6 +28,14 @@ dev_build_job:
       - sed -i -e "s;^\s*DB_USERNAME=.*;DB_USERNAME=devpayment;g" .env
       - sed -i -e "s;^\s*DB_PASSWORD=.*;DB_PASSWORD=$DEV_DB_PASS;g" .env
       - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://devpay.zippyttech.com/;g" .env
+      - sed -i -e "s;^\s*USERS_SERVICE_BASE_URL=.*;USERS_SERVICE_BASE_URL=https://devus.zippyttech.com;g" .env
+      - sed -i -e "s;^\s*USERS_SERVICE_PORT=.*;USERS_SERVICE_PORT=;g" .env
+      - sed -i -e "s;^\s*USERS_SERVICE_SECRET=.*;USERS_SERVICE_SECRET=;g" .env
+      - sed -i -e "s;^\s*USERS_PREFIX=.*;USERS_PREFIX=/us;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_SERVICE_BASE_URL=.*;CUSTOMER_SERVICE_BASE_URL=https://devcs.zippyttech.com;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_SERVICE_PORT=.*;CUSTOMER_SERVICE_PORT=;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_SERVICE_SECRET=.*;CUSTOMER_SERVICE_SECRET=;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_PREFIX=.*;CUSTOMER_PREFIX=/cs;g" .env
       - docker build -t devpay-api .
   when: on_success
   tags:
@@ -84,6 +92,14 @@ qa_build_job:
       - sed -i -e "s;^\s*DB_USERNAME=.*;DB_USERNAME=qapayment;g" .env
       - sed -i -e "s;^\s*DB_PASSWORD=.*;DB_PASSWORD=$QA_DB_PASS;g" .env
       - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://qapay.zippyttech.com/;g" .env
+      - sed -i -e "s;^\s*USERS_SERVICE_BASE_URL=.*;USERS_SERVICE_BASE_URL=https://qaus.zippyttech.com;g" .env
+      - sed -i -e "s;^\s*USERS_SERVICE_PORT=.*;USERS_SERVICE_PORT=;g" .env
+      - sed -i -e "s;^\s*USERS_SERVICE_SECRET=.*;USERS_SERVICE_SECRET=;g" .env
+      - sed -i -e "s;^\s*USERS_PREFIX=.*;USERS_PREFIX=/us;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_SERVICE_BASE_URL=.*;CUSTOMER_SERVICE_BASE_URL=https://qacs.zippyttech.com;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_SERVICE_PORT=.*;CUSTOMER_SERVICE_PORT=;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_SERVICE_SECRET=.*;CUSTOMER_SERVICE_SECRET=;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_PREFIX=.*;CUSTOMER_PREFIX=/cs;g" .env
       - docker build -t qapay-api .
   when: on_success
   tags:
@@ -140,6 +156,14 @@ prod_build_job:
       - sed -i -e "s;^\s*DB_USERNAME=.*;DB_USERNAME=payment;g" .env
       - sed -i -e "s;^\s*DB_PASSWORD=.*;DB_PASSWORD=$PROD_DB_PASS;g" .env
       - sed -i -e "s;^\s*CUSTOM_URL=.*;CUSTOM_URL=https://pay.zippyttech.com/;g" .env
+      - sed -i -e "s;^\s*USERS_SERVICE_BASE_URL=.*;USERS_SERVICE_BASE_URL=https://us.zippyttech.com;g" .env
+      - sed -i -e "s;^\s*USERS_SERVICE_PORT=.*;USERS_SERVICE_PORT=;g" .env
+      - sed -i -e "s;^\s*USERS_SERVICE_SECRET=.*;USERS_SERVICE_SECRET=;g" .env
+      - sed -i -e "s;^\s*USERS_PREFIX=.*;USERS_PREFIX=/us;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_SERVICE_BASE_URL=.*;CUSTOMER_SERVICE_BASE_URL=https://cs.zippyttech.com;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_SERVICE_PORT=.*;CUSTOMER_SERVICE_PORT=;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_SERVICE_SECRET=.*;CUSTOMER_SERVICE_SECRET=;g" .env
+      - sed -i -e "s;^\s*CUSTOMER_PREFIX=.*;CUSTOMER_PREFIX=/cs;g" .env
       - docker build -t prodpay-api .
   when: on_success
   tags:
