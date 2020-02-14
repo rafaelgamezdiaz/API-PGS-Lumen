@@ -12,59 +12,61 @@
         border-collapse: collapse;
         max-width: 100%;
         min-width: 100%;
-        margin-top: 10px;
+        margin-top: 20px;
     }
-
     th, td {
         text-align: center;
         padding: 3px;
         font-size:12px ;
+        width: fit-content !important;
     }
-
     tr:nth-child(even){background-color: #f2f2f2}
-
     th {
-        background-color: <?=$colors['primary']?>;
+        background-color: goldenrod;
         color: white;
     }
     h1{
         font-family: apple-system;
         font-size: 2em;
     }
+    img {
+        position: absolute !important;
+        left: 30px !important;
+        top: 30px !important;
+        width: 85px !important;
+    }
 </style>
 <body>
-<div>
-    <img  style="width: 80px;float: right;" src="<?= $logo ?>" alt="Logo" ><br>
-    <div style="text-align: center;">
-        <h2>Reporte <?= $title ?></h2>
-    </div>
+    <div>
+        <div>
+            <img src="<?= $logo ?>" alt="Logo" ><br>
+        </div>
+        <div style="text-align: center;">
+            <h2>Reporte de <?= $title ?></h2>
+        </div>
 
-</div>
-<div>
-    <table>
-        <thead>
-        <tr>
-            <?php foreach ($index as $title => $value):?>
-                <th><?php echo $title ?></th>
-            <?php endforeach ?>
-        </tr>
-        </thead>
-        <tbody>
-        <?php $total = 0; ?>
-        <?php foreach ($data as $key):?>
+    </div>
+    <div>
+        <table>
+            <thead>
             <tr>
-                <?php foreach ($index as $title):?>
-                    <td><?php echo is_array($key) ? $key[$title] ?? null : $key->$title ?? null?></td>
+                <?php foreach ($index as $title => $value):?>
+                    <th><?php echo $title ?></th>
                 <?php endforeach ?>
             </tr>
-        <?php endforeach ?>
-        <tr>
-            <td>Total de registros</td>
-            <td><?php echo count($data); ?></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+            </thead>
+            <tbody>
+            <?php $total = 0; ?>
+            <?php foreach ($data as $key):?>
+                <tr>
+                    <?php foreach ($index as $title):?>
+                        <td><?php echo is_array($key) ? $key[$title] ?? null : $key->$title ?? null?></td>
+                    <?php endforeach ?>
+                </tr>
+            <?php endforeach ?>
+            </tbody>
+        </table>
+        <h5 style="color: darkslategrey;">Total de pagos <small><?php echo count($data); ?></small></h5>
+    </div>
 </body>
 </html>
-

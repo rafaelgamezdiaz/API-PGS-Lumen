@@ -67,6 +67,18 @@ class Payment extends BaseModel
         ];
     }
 
+    public function rulesMassivePayment()
+    {
+        return [
+            'type_id'           => 'required',
+            'method_id'         => 'required',
+            'client_id'         => 'required',
+            'username'          => 'required',
+            'account'           => 'required|numeric',
+            'amount'            => 'required'
+        ];
+    }
+
     public function isAvailable()
     {
         return $this->status == Payment::PAYMENT_STATUS_AVAILABLE;
