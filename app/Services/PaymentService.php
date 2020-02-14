@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Bill;
 use App\Models\Payment;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\ProvidesConvenienceMethods;
 
 class PaymentService extends BaseService
@@ -101,13 +102,9 @@ class PaymentService extends BaseService
     public function destroy($id)
     {
         $payment = Payment::findOrFail($id);
-
-        // Check if the Payment is already assigned.
-        $bills = $payment->has('bills')->get();
-        if(count($bills)) {
+        if(count($payment->bills) > 0) {
             return $this->errorMessage('Lo sentimos, este pago ya se encuentra asignado a alguna factura, por lo que no puede ser eliminado.');
-        };
-
+        }
         if ($payment->delete())
         {
             return $this->successResponse('La información del pago ha sido eliminada.');
@@ -157,6 +154,7 @@ class PaymentService extends BaseService
         $payment->fill($request->all());
         $payment->amount_pending = 0;
 
+        // Check if was previously conciliated
         if ( $this->checkBillConciliated($request->bill_id) ) {
             return $this->errorMessage('Esa factura ya ya sido conciliada previamente');
         }
@@ -179,5 +177,40 @@ class PaymentService extends BaseService
     public function checkBillConciliated ( $bill_id )
     {
         return count(Bill::where('bill_id',$bill_id)->get());
+    }
+
+    /**
+     * Service to store massive data load of payment
+     */
+    public function massiveStore($request, $payment, $paymentService)
+    {
+        $this->validate($request, $payment->rulesMassivePayment());
+        $clients_ids = $request->client_id;
+
+        // REALIZAR POST AL ENDPOINT DE VENTAS
+        try {
+            DB::beginTransaction();
+            foreach ($clients_ids as $key => $client_id)
+            {
+                Payment::create([
+                    'client_id' => $client_id,
+                    'type_id'   => $request->type_id[$key],
+                    'method_id' => $request->method_id[$key],
+                    'username'  => $request->username,
+                    'account'   => $request->account,
+                    'amount'    => $request->amount[$key],
+                    'amount_pending' => $request->amount[$key]
+                ]);
+            }
+            DB::commit();
+        }
+        catch (\Exception $e){
+            DB::rollback();
+            return response()->json([
+                "status" => 500,
+                "message" => "No se ha podido realizar la carga masiva de pagos."
+            ], 500);
+        }
+        return $this->successResponse('Carga masiva de pagos realizada con éxito.');
     }
 }

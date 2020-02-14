@@ -17,8 +17,6 @@ class BillService extends BaseService
 {
     use ApiResponser, ProvidesConvenienceMethods;
 
-    public $list;
-
     public function index($request)
     {
         if (isset($_GET['where'])) {
@@ -62,16 +60,14 @@ class BillService extends BaseService
         {
             foreach ($payments as $payment)
             {
-                $payment_id = $payment['id'];
-                $amount_available = Payment::findOrFail($payment_id)->only(['amount_pending'])['amount_pending'];
-
+                $amount_available = Payment::findOrFail($payment['id'])->only(['amount_pending'])['amount_pending'];
                 if ($amount_available > 0) {
                     $quantity = $amount_available - $bill[1]['amount'];
                     if ( $quantity  <= 0) {
-                        $bill[1]['amount'] = $this->doConciliation($request, $quantity, $amount_available, $payment_id, $bill);
+                        $bill[1]['amount'] = $this->doConciliation($request, $quantity, $amount_available, $payment['id'], $bill);
                     }else if ( $quantity  > 0){
                         if ($bill[1]['amount'] > 0) {
-                            $bill[1]['amount'] = $this->doConciliation($request, $quantity, $bill[1]['amount'], $payment_id, $bill);
+                            $bill[1]['amount'] = $this->doConciliation($request, $quantity, $bill[1]['amount'], $payment['id'], $bill);
                         }
                     }
                 }
@@ -85,16 +81,12 @@ class BillService extends BaseService
      */
     public function getBillsAmountPending($bills_ids, $amounts)
     {
-        $contador = 0;
         $bills = collect();
-        foreach ($bills_ids as $bill_id)
-        {
+        $bills_ids->each(function($bills_ids, $key) use ($bills, $amounts){
             $bills->push([
-                    collect(['id'])->combine($bill_id),
-                    collect(['amount'])->combine($amounts[$contador])]
-            );
-            $contador++;
-        }
+                    collect(['id'])->combine($bills_ids),
+                    collect(['amount'])->combine($amounts[$key])]);
+        });
         return $bills;
     }
 
@@ -104,14 +96,12 @@ class BillService extends BaseService
     public function getAmountsAvailable($payments_ids)
     {
         $payments = collect();
-        foreach ($payments_ids as $payment_id)
-        {
+        $payments_ids->each(function ($payments_ids) use($payments){
             $payments->push(
-                collect(['id' => $payment_id,
-                        'amount' => Payment::findOrFail($payment_id)
-                            ->only(['amount_pending'])['amount_pending']])
-            );
-        }
+                collect(
+                    ['id' => $payments_ids,
+                     'amount' => Payment::findOrFail($payments_ids)->only(['amount_pending'])['amount_pending']]));
+        });
         return $payments->sortBy('amount')->where('amount','>',0);
     }
 

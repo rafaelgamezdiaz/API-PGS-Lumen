@@ -41,6 +41,10 @@ class ReportController extends Controller
         $report->external();
         $report->transmissionRaw();
 
+        // Load Logo
+        $user = $request->get('user')->user;
+        $report->getAccountInfo($user->current_account);
+
         return $report->report("automatic","Pagos","",null,false,2);
     }
 

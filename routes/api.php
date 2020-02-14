@@ -25,6 +25,10 @@ $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($ro
     // FULL PAYMENT FROM API-VENTAS
     $router->post('payments/fullpayment', 'Payment\PaymentBillController@store');
 
+    // PAYMENT MASSIVE DATA LOAD
+    $router->post('payments/massive', 'Payment\PaymentMassiveController@store');
+
+
     // PAYMENTS BY CLIENT
     $router->get('payments/{id}/client', 'Payment\PaymentClientController@index');
 
