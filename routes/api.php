@@ -44,7 +44,7 @@ $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($ro
     $router->get('methods', 'Method\MethodController@index');
 
     // PAYMENT TYPE (Manage types as "A Enviar", "A Recibir")
-    $router->get('type', 'Type\TypeController@index');
+    $router->get('types', 'Type\TypeController@index');
 
     // REPORT
     $router->post('report', 'Report\ReportController@automatic');

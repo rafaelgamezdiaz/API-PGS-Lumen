@@ -18,11 +18,11 @@ class BaseService
         $this->account = $this->getAccount($request);
     }
 
-    public function doRequest($request, $method, $endpoint)
+    public function doRequest($request, $method, $endpoint, $params = null)
     {
         $url = $this->getURL().$endpoint;
         $headers = $this->getHeaders($request);
-        $response = $this->performRequest($method,$url,null,$headers);
+        $response = $this->performRequest($method,$url,$params,$headers);
         return collect($response);
     }
 }

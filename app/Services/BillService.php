@@ -8,8 +8,10 @@ use App\Models\Bill;
 use App\Models\Payment;
 use App\Traits\ApiResponser;
 use function foo\func;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Laravel\Lumen\Routing\ProvidesConvenienceMethods;
 use PDOException;
 
@@ -56,24 +58,44 @@ class BillService extends BaseService
         $amounts = collect($request->amount);  // Bills amount (from API-ventas)
         $bills = $this->getBillsAmountPending($bills_ids, $amounts);
 
-        foreach ($bills as $bill)
-        {
-            foreach ($payments as $payment)
+        $response = array();
+        if ($this->testConnection($request)) {
+            foreach ($bills as $bill)
             {
-                $amount_available = Payment::findOrFail($payment['id'])->only(['amount_pending'])['amount_pending'];
-                if ($amount_available > 0) {
-                    $quantity = $amount_available - $bill[1]['amount'];
-                    if ( $quantity  <= 0) {
-                        $bill[1]['amount'] = $this->doConciliation($request, $quantity, $amount_available, $payment['id'], $bill);
-                    }else if ( $quantity  > 0){
-                        if ($bill[1]['amount'] > 0) {
-                            $bill[1]['amount'] = $this->doConciliation($request, $quantity, $bill[1]['amount'], $payment['id'], $bill);
+                if ($this->checkIFBillExist($request, $bill[0]['id'])) {
+                    foreach ($payments as $payment)
+                    {
+                        $amount_available = Payment::findOrFail($payment['id'])->only(['amount_pending'])['amount_pending'];
+                        if ($amount_available > 0) {
+                            $quantity = $amount_available - $bill[1]['amount'];
+                            if ( $quantity  <= 0) {
+                                $amount_pending = abs($quantity);
+                                $amount_paid = $amount_available;
+                                $amount_available = 0;
+                                $response[] = $this->cociliatePayment($request, $payment['id'], $bill[0]['id'], $amount_available, $amount_paid, $amount_pending);
+                                $bill[1]['amount'] = $amount_pending;
+                            }else if ( $quantity  > 0){ // Factura pagada completamente
+                                if ($bill[1]['amount'] > 0) {
+                                    $amount_pending = 0;
+                                    $amount_paid = $bill[1]['amount'];
+                                    $amount_available = abs($quantity);
+                                    $response[] = $this->cociliatePayment($request, $payment['id'], $bill[0]['id'], $amount_available, $amount_paid, $amount_pending);
+                                    $bill[1]['amount'] = $amount_pending;
+                                }
+                            }
                         }
                     }
                 }
+                else {
+                    $response[] = ["message" => 'Error: Id = '.$bill[0]['id'].' No Registrado.'];
+                }
             }
+            return ($response !== false) ? $this->successResponse('Asignación del pago realizada con éxito!') : $response;
         }
-        return $this->successResponse('Asignación del pago realizada con éxito!');
+        return response()->json([
+            "status" => 500,
+            "message" => "No hay coneccion con API Ventas"
+        ], 500);
     }
 
     /**
@@ -110,9 +132,7 @@ class BillService extends BaseService
      */
     public function doConciliation($request, $quantity, $amount_pending, $payment_id, $bill)
     {
-        $amount_paid = $amount_pending;
-        $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid);
-        $this->updatePayment($payment_id, $this->nonNullQuantities($quantity));
+        $this->cociliatePayment($request, $payment_id, $bill[0]['id'], $amount_paid, $amount_pending, $quantity);
         return $quantity >= 0 ? 0 : abs($quantity);
     }
 
@@ -124,12 +144,13 @@ class BillService extends BaseService
     /**
      * Do the conciliation in bills table
      */
-    public function cociliatePayment($request, $payment_id, $bill_id, $amount_paid)
+    public function cociliatePayment($request, $payment_id, $bill_id, $amount_available, $amount_paid, $amount_pending)
     {
-        // REALIZAR POST AL ENDPOINT DE VENTAS
+
         try {
             DB::beginTransaction();
 
+            // Create Conciliations
             $bill = new Bill();
             $bill->bill_id = $bill_id;
             $bill->payment_id = $payment_id;
@@ -137,27 +158,43 @@ class BillService extends BaseService
             $bill->account = $request->account;
             $bill->amount_paid = $amount_paid;
             $bill->save();
+            // Update payments amount available
+            if ($bill->save()) {
+                $payment = Payment::findOrFail($payment_id);
+                $payment->amount_pending = $amount_available;
+                if ($amount_available == 0) {
+                    $payment->status = Payment::PAYMENT_STATUS_ASSIGNED;
+                }
+                $payment->update();
+            }
 
-           //  = $clientService->getClient($request, $payments->client_id, false);
-            DB::commit();
+            // POST to Sales API
+            $url = env('SALES_SERVICE_BASE_URL') .env('SALES_SERVICE_PREFIX').'/amount/operation/' . $bill_id;
+            $postSales = $this->doRequest($request,'PUT',  $url, ['amount' => $amount_pending]);
+            LOG::info($postSales);
+            if ($postSales['status'] == false) {
+                DB::rollback();
+                if (isset($postSales['connection']) == 'refused'){
+                    return response()->json([
+                        "status" => 500,
+                        "message" => "No hay coneccion con API Ventas"
+                    ], 500);
+                }
+            }
+            elseif ($postSales['status'] == 200) {
+                DB::commit();
+                return ["message" => 'Factura Id = '.$bill_id.' conciliada'];
+            }
         }
         catch (\Exception $e){
             DB::rollback();
             return response()->json([
                 "status" => 500,
-                "message" => "No se ha podido registrar el pago total de la factura:"
+                "message" => "No se ha podido registrar el pago de la factura:"
             ], 500);
         }
     }
 
-    public function errorExceptionSpace(\Exception $e)
-    {
-        if(($e->getCode() == '23P01') && ($e instanceof PDOException))
-        {
-
-        }
-        return parent::errorException($e);
-    }
 
     public function updatePayment($id, $amount)
     {
@@ -167,5 +204,27 @@ class BillService extends BaseService
             $payment->status = Payment::PAYMENT_STATUS_ASSIGNED;
         }
         return ($payment->update()) ? true : null;
+    }
+
+    private function testConnection($request)
+    {
+        $url = env('SALES_SERVICE_BASE_URL') .env('SALES_SERVICE_PREFIX');
+        $connection_APIVentas = $this->doRequest($request,'GET',  $url);
+        if (isset($connection_APIVentas['connection']) == 'refused'){
+            return false;
+        }
+        return true;
+    }
+
+    private function checkIFBillExist($request, $bill_id)
+    {
+        $url = env('SALES_SERVICE_BASE_URL') .env('SALES_SERVICE_PREFIX').'/amount/operation/' . $bill_id;
+        $billExist = $this->doRequest($request,'GET',  $url);
+        if (isset($billExist['response']->status) ) {
+            if ( $billExist['response']->status == 404 ) {
+                return false;
+            }
+        }
+        return true;
     }
 }

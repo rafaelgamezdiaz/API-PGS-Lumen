@@ -187,7 +187,7 @@ trait ConsumesExternalService
                     $response = $client->post( $requestUrl, ['json' => $formParams, 'headers' => $headers]);
                 }
             }elseif($method=='PUT'){
-                $response = $client->put($requestUrl, ['json' => $formParams->all(), 'headers' => $headers]);
+                $response = $client->put($requestUrl, ['json' => $formParams, 'headers' => $headers]);
             }else{
                 //$response = $client->request($method, $requestUrl, ['json' => $formParams, 'headers' => $headers], ['connect_timeout' => 2, 'timeout' => 3, 'debug' => true]);
                 $response = $client->request($method, $requestUrl,  ['json' => $formParams, 'headers' => $headers]);
@@ -211,6 +211,7 @@ trait ConsumesExternalService
             Log::critical($exception->getMessage() . "\n" . $exception->getFile() . "\n" . $exception->getLine());
             $response['status'] = false;
             $response['response'] = $exception->getMessage();
+            $response['connection'] = 'refused';
             return $response;
         }catch (Exception $exception){
             Log::critical($exception->getMessage() . "\n" . $exception->getFile() . "\n" . $exception->getLine());

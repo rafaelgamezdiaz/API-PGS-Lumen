@@ -63,8 +63,10 @@ class PaymentService extends BaseService
     public function show($request, $id, $clientService, $userService){
         $payment = Payment::findOrFail($id)
                            ->where('status', Payment::PAYMENT_STATUS_AVAILABLE);
-        $payment->type;
-        $payment->method;
+       // return response()->json($payment);
+
+        $payment->type_id;
+        $payment->method_id;
         $payment->client = $clientService->getClient($request, $payment->client_id, false);
         $payment->user = $userService->getUser($request, $payment->username, false);
 
