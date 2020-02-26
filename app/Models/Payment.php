@@ -36,6 +36,18 @@ class Payment extends BaseModel
             'username'          => 'required',
             'account'           => 'required|numeric',
             'amount'            => 'required|numeric',
+        ];
+    }
+
+    public function rulesPaymentConciliated()
+    {
+        return [
+            'type_id'           => 'required|numeric',
+            'method_id'         => 'required|numeric',
+            'client_id'         => 'required|numeric',
+            'username'          => 'required',
+            'account'           => 'required|numeric',
+            'amount'            => 'required|numeric',
             'bill_id'           => 'numeric'
         ];
     }
