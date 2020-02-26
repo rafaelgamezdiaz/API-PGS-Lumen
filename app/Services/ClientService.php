@@ -34,4 +34,22 @@ class ClientService extends BaseService
         $client_fields = $client->only(['id','name','last_name','commerce_name']);
         return ($extended == true) ? $client : $client_fields;
     }
+
+    /**
+     * Returns a Client from API-Customers, by id
+     */
+    public function getClients($request, $account, $extended = true)
+    {
+        $endpoint = '/clients?account='.$account;
+        //$endpoint = '/clients?account='.$account;
+        $client = $this->doRequest($request,'GET',  $endpoint, );
+        if ( $client == false) {
+            return "Error! There is nor connection with API-Customers";
+        }
+
+        // Returns Client data. $extended == true --> full info, else returns specific fields.
+        $client_fields = $client['list']; //->only(['id', 'commerce_name']);
+        return $client_fields;
+        //return ($extended == true) ? $client : $client_fields;
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Services\BillService;
 use App\Services\ClientService;
 use App\Services\PaymentService;
 use App\Services\UserService;
@@ -22,9 +23,9 @@ class PaymentController extends Controller
      /**
      * Store a Payment
      */
-    public function store(Request $request, Payment $payment, PaymentService $paymentService)
+    public function store(Request $request, Payment $payment, PaymentService $paymentService, BillService $billService)
     {
-        return $paymentService->store($request, $payment);
+        return $paymentService->store($request, $payment, $billService);
     }
 
      /**

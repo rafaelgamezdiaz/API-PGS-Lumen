@@ -17,7 +17,7 @@ class PaymentService extends BaseService
     /**
      * Return payment list
      */
-    public function index($request, $clientService, $userService)
+    public function index($request, $clientService)
     {
         if (isset($_GET['where'])) {
             $payments = Payment::doWhere($request)
@@ -32,29 +32,87 @@ class PaymentService extends BaseService
                 ->orderBy('created_at', 'desc')
                 ->get();
         }
-        $payments->each(function($payments) use ($request, $clientService, $userService)
-        {
-            $payments->type;
-            $payments->method;
-            $payments->client = $clientService->getClient($request, $payments->client_id, false);
-            $payments->user = $userService->getUser($request, $payments->username, false);
-        });
 
-        return $this->successResponse("Lista de Pagos", $payments);
+        $clients = $clientService->getClients($request, $this->account, false);
+
+        //return $clients;
+        foreach ( $clients as $client)
+        {
+           /*foreach ($payments as $payment)
+            {
+                if ($client['id'] == $payment->client_id) {
+                    $payment->client_commerce_name = $client['commerce_name'];
+                    break 2;
+                }
+            }*/
+           $response = array();
+           foreach ($payments as $payment)
+           {
+               if ($client['id'] == $payment->client_id) {
+                   array_push($response, ['client_commerce_name' => $client['commerce_name']]);
+                  // $payment->push(['client_commerce_name' => $client['commerce_name']]);
+                   //$payment->client_commerce_name = $client['commerce_name'];
+                   break;
+               }
+           }
+            /*$payments->each(function($payments) use($client){
+                if ($client['id'] == $payments->client_id) {
+                    $payments->client_commerce_name = $client['commerce_name'];
+                }
+            } );*/
+            /*{
+                if ($client['id'] == $payment->client_id) {
+                    $payment->client_commerce_name = $client['commerce_name'];
+                    break 2;
+                }
+            }*/
+            /*$payments->each(function($payments) use ($request, $client)
+            {
+                $payments->type;
+                $payments->method;
+
+                //$payments->client = $clientService->getClients($request, $payments->client_id, false);
+                //$payments->user = $userService->getUser($request, $payments->username, false);
+            });*/
+        }
+
+        return $this->successResponse("Lista de Pagos", $response);
+
     }
 
     /**
      * Store a payment
      */
-    public function store($request, $payment)
+    public function store($request, $payment, $billService)
     {
         $this->validate($request, $payment->rules());
         $payment->fill($request->all());
         $payment->amount_pending = $request->amount;
+
+        // Save the payment and make the conciliation
         if ($payment->save()) {
+
+            // If it is a Payment with Conciliation operations
+            if ($request->has('bill_id')) {
+
+                // Conciliate the payment
+                Bill::create([
+                    'bill_id'       => $request->bill_id,
+                    'payment_id'    => $payment->id,
+                    'username'      => $request->username,
+                    'account'       => $request->account,
+                    'amount_paid'   => $request->amount
+                ]);
+
+                if ( $billService->updatePayment($payment->id, 0) ) {
+                    return $this->successResponse('Pago registrado con éxito.', $payment);
+                }
+            }
+            // If it is only a Payment operation ( without automatic conciliation )
             return $this->successResponse('Pago registrado con éxito.', $payment);
         };
-        return $this->errorMessage('Ha ocurrido un error al intentar guardar el pago.');
+
+        return $this->errorMessage('Ha ocurrido un error al intentar realizar el pago de la factura.');
     }
 
     /**
@@ -63,13 +121,10 @@ class PaymentService extends BaseService
     public function show($request, $id, $clientService, $userService){
         $payment = Payment::findOrFail($id)
                            ->where('status', Payment::PAYMENT_STATUS_AVAILABLE);
-       // return response()->json($payment);
-
         $payment->type_id;
         $payment->method_id;
         $payment->client = $clientService->getClient($request, $payment->client_id, false);
         $payment->user = $userService->getUser($request, $payment->username, false);
-
         return $payment;
     }
 
@@ -146,63 +201,24 @@ class PaymentService extends BaseService
     }
 
     /**
-     * Full payment of a Bill
-     * Created to storage a payment from API-Ventas
-     * $request->amount Is the total amount to pay of the bill
-     */
-    public function billFullPayment($request, $payment, $billService)
-    {
-        $this->validate($request, $payment->rulesFullBillPayment());
-        $payment->fill($request->all());
-        $payment->amount_pending = 0;
-
-        // Check if was previously conciliated
-        if ( $this->checkBillConciliated($request->bill_id) ) {
-            return $this->errorMessage('Esa factura ya ya sido conciliada previamente');
-        }
-
-        if ($payment->save()) {
-            Bill::create([
-                'bill_id'       => $request->bill_id,
-                'payment_id'    => $payment->id,
-                'username'     => $request->username,
-                'account'       => $request->account,
-                'amount_paid'   => $request->amount
-            ]);
-            if ( $billService->updatePayment($payment->id, 0) ) {
-                return $this->successResponse('Pago total de la factura registrado con éxito.', $payment);
-            }
-        };
-        return $this->errorMessage('Ha ocurrido un error al intentar realizar el pago de la factura.');
-    }
-
-    public function checkBillConciliated ( $bill_id )
-    {
-        return count(Bill::where('bill_id',$bill_id)->get());
-    }
-
-    /**
      * Service to store massive data load of payment
      */
-    public function massiveStore($request, $payment, $paymentService)
+    public function massiveStore($request)
     {
-        $this->validate($request, $payment->rulesMassivePayment());
-        $clients_ids = $request->client_id;
-
-        // REALIZAR POST AL ENDPOINT DE VENTAS
+        $payments = $request->payments;
         try {
             DB::beginTransaction();
-            foreach ($clients_ids as $key => $client_id)
+            foreach ($payments as $payment_element)
             {
-                Payment::create([
-                    'client_id' => $client_id,
-                    'type_id'   => $request->type_id[$key],
-                    'method_id' => $request->method_id[$key],
-                    'username'  => $request->username,
-                    'account'   => $request->account,
-                    'amount'    => $request->amount[$key],
-                    'amount_pending' => $request->amount[$key]
-                ]);
+                 Payment::create([
+                     'client_id' => $payment_element['client_id'],
+                     'type_id'   => 2,  // 'A Recibir' default for massive payments
+                     'method_id' => $payment_element['method_id'],
+                     'username'  => $this->username,
+                     'account'   => $this->account,
+                     'amount'    => $payment_element['amount'],
+                     'amount_pending' => $payment_element['amount']
+                 ]);
             }
             DB::commit();
         }
@@ -215,4 +231,10 @@ class PaymentService extends BaseService
         }
         return $this->successResponse('Carga masiva de pagos realizada con éxito.');
     }
+
+    public function checkBillConciliated ( $bill_id )
+    {
+        return count(Bill::where('bill_id',$bill_id)->get());
+    }
+
 }

@@ -21,9 +21,9 @@ class PaymentMassiveController extends Controller
      /**
      * Store a Massive Data Load of Payments
      */
-    public function store(Request $request, Payment $payment, PaymentService $paymentService)
+    public function store(Request $request, PaymentService $paymentService)
     {
-        return $paymentService->massiveStore($request, $payment, $paymentService);
+        return $paymentService->massiveStore($request);
     }
 
 

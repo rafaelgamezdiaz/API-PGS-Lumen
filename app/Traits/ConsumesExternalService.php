@@ -111,6 +111,10 @@ trait ConsumesExternalService
         return $request->get('user')->user->current_account;
     }
 
+    public function getUserName($request){
+        return $request->get('user')->user->username;
+    }
+
     /**
      * @param $token, $request
      * @return json ($fields = ['u.user_id','u.name','u.email','ur.role_id','r.authority'])
