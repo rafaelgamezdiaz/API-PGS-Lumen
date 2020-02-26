@@ -24,10 +24,7 @@ class Payment extends BaseModel
     ];
 
     protected $hidden = [
-        'type_id',
-        'method_id',
-        'client_id',
-        'deleted_at',
+        'deleted_at'
     ];
 
     public function rules()
@@ -38,7 +35,8 @@ class Payment extends BaseModel
             'client_id'         => 'required|numeric',
             'username'          => 'required',
             'account'           => 'required|numeric',
-            'amount'            => 'required|numeric'
+            'amount'            => 'required|numeric',
+            'bill_id'           => 'numeric'
         ];
     }
 
@@ -51,31 +49,6 @@ class Payment extends BaseModel
             'client_id'         => 'numeric',
             'account'           => 'numeric',
             'amount'            => 'numeric'
-        ];
-    }
-
-    public function rulesFullBillPayment()
-    {
-        return [
-            'type_id'           => 'required|numeric',
-            'method_id'         => 'required|numeric',
-            'client_id'         => 'required|numeric',
-            'username'          => 'required',
-            'account'           => 'required|numeric',
-            'amount'            => 'required|numeric',
-            'bill_id'           => 'required|numeric'
-        ];
-    }
-
-    public function rulesMassivePayment()
-    {
-        return [
-            'type_id'           => 'required',
-            'method_id'         => 'required',
-            'client_id'         => 'required',
-            'username'          => 'required',
-            'account'           => 'required|numeric',
-            'amount'            => 'required'
         ];
     }
 

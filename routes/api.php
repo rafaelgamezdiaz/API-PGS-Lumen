@@ -22,12 +22,8 @@ $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($ro
     $router->patch('payments/{id}', 'Payment\PaymentController@update');
     $router->delete('payments/{id}', 'Payment\PaymentController@destroy');
 
-    // FULL PAYMENT FROM API-VENTAS
-    $router->post('payments/fullpayment', 'Payment\PaymentBillController@store');
-
     // PAYMENT MASSIVE DATA LOAD
     $router->post('payments/massive', 'Payment\PaymentMassiveController@store');
-
 
     // PAYMENTS BY CLIENT
     $router->get('payments/{id}/client', 'Payment\PaymentClientController@index');
@@ -48,6 +44,4 @@ $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($ro
 
     // REPORT
     $router->post('report', 'Report\ReportController@automatic');
-
-
 } );
