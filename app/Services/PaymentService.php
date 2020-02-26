@@ -85,16 +85,14 @@ class PaymentService extends BaseService
      */
     public function store($request, $payment, $billService)
     {
-        $this->validate($request, $payment->rules());
         $payment->fill($request->all());
         $payment->amount_pending = $request->amount;
 
-        // Save the payment and make the conciliation
-        if ($payment->save()) {
+        if ($request->has('bill_id')) {   // If it is a Payment with Conciliation operations
+            $this->validate($request, $payment->rulesPaymentConciliated());
+            if ($payment->save()) {
 
-            // If it is a Payment with Conciliation operations
-            if ($request->has('bill_id')) {
-
+                $payment->amount_pending = 0;
                 // Conciliate the payment
                 Bill::create([
                     'bill_id'       => $request->bill_id,
@@ -108,8 +106,12 @@ class PaymentService extends BaseService
                     return $this->successResponse('Pago registrado con éxito.', $payment);
                 }
             }
-            // If it is only a Payment operation ( without automatic conciliation )
-            return $this->successResponse('Pago registrado con éxito.', $payment);
+        }
+        else{    // If it is a Payment operation (without automatic conciliation)
+            $this->validate($request, $payment->rules());
+            if ($payment->save()) {
+                return $this->successResponse('Pago registrado con éxito.', $payment);
+            }
         };
 
         return $this->errorMessage('Ha ocurrido un error al intentar realizar el pago de la factura.');
