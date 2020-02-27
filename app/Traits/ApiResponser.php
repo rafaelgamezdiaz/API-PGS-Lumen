@@ -27,6 +27,11 @@ trait ApiResponser
         return response()->json(['message' => $message, 'status' => $code], $code)->header('Content-Type', 'application/json');
     }
 
+    public function simpleResponse($data)
+    {
+        return response()->json($data)->header('Content-Type', 'application/json');
+    }
+
     public function dataResponse($data = null, $code = Response::HTTP_OK)
     {
         return response()->json(['data' => $data], $code)->header('Content-Type', 'application/json');

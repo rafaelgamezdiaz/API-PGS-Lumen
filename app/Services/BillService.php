@@ -90,7 +90,7 @@ class BillService extends BaseService
                     $response[] = ["message" => 'Error: Id = '.$bill[0]['id'].' No Registrado.'];
                 }
             }
-            return ($response !== false) ? $this->successResponse('Asignación del pago realizada con éxito!') : $response;
+            return ($response !== false) ? $this->successResponse('Asignación del pago realizada con éxito!', $response) : $response;
         }
         return response()->json([
             "status" => 500,
