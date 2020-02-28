@@ -90,12 +90,44 @@ class BillService extends BaseService
                     $response[] = ["message" => 'Error: Id = '.$bill[0]['id'].' No Registrado.'];
                 }
             }
-            return ($response !== false) ? $this->successResponse('Asignación del pago realizada con éxito!') : $response;
+            return ($response !== false) ? $this->successResponse('Asignación del pago realizada con éxito!', $response) : $response;
         }
         return response()->json([
             "status" => 500,
             "message" => "No hay coneccion con API Ventas"
         ], 500);
+    }
+
+    /**
+     * Returns all Payments for an specific Bill
+     */
+    public function showPayments($request, $id, $bill, $clientService, $methodService, $typeService)
+    {
+        $bills = Bill::where('bill_id', $id)
+                     ->get();
+        $bill_payments_list = collect();
+        foreach ($bills as $bill)
+        {
+            // Get Payment Conciliated
+            $bill_payment = $bill->payment;
+
+            // Formating the Json response
+            $temp = collect([
+                'payment_id' => $bill->payment_id,
+                'username_conciliation' => $bill->username,
+                'date_conciliation' => $bill->created_at,
+                'amount_paid' => $bill->amount_paid
+            ])->merge([
+                'type_id' => $typeService->show($bill_payment->type_id),
+                'method_id' => $methodService->show($bill_payment->method_id),
+                'client' => $clientService->getClient($request, $bill_payment->client_id, false),
+                'username_payment' => $bill_payment->username,
+                'payment_amount' => $bill_payment->amount,
+                'payment_created_at' => $bill_payment->created_at
+            ]);
+            $bill_payments_list->push($temp);
+        }
+        return $this->successResponse("Pagos conciliados con la factura: ".$id, $bill_payments_list);
     }
 
     /**

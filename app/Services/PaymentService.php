@@ -17,44 +17,55 @@ class PaymentService extends BaseService
     /**
      * Return payment list
      */
-    public function index($request, $clientService)
+    public function index($request, $clientService, $userService)
     {
         if (isset($_GET['where'])) {
             $payments = Payment::doWhere($request)
                 ->where('account', $this->account)
                 ->where('status', Payment::PAYMENT_STATUS_AVAILABLE)
-                ->orderBy('created_at', 'desc')
-                ->get();
+                ->orderBy('created_at', 'desc');
         }
         else{
             $payments =  Payment::where('account', $this->account)
                 ->where('status', Payment::PAYMENT_STATUS_AVAILABLE)
-                ->orderBy('created_at', 'desc')
-                ->get();
+                ->orderBy('created_at', 'desc');
         }
 
-        $clients = $clientService->getClients($request, $this->account, false);
+        $limit = $request->has('limit') ? $request->input('limit') : 10;
+        $payments = ($request->has('paginate') && $request->paginate=='true') ? $payments->paginate($limit) : $payments->get();
 
+        $payments->each(function($payments) use ($request, $clientService, $userService)
+        {
+            $payments->type;
+            $payments->method;
+            $payments->client = $clientService->getClient($request, $payments->client_id, false);
+            $payments->user = $userService->getUser($request, $payments->username, false);
+        });
+        return $this->simpleResponse($payments);
+    }
+
+    public function temp()
+    {
         //return $clients;
         foreach ( $clients as $client)
         {
-           /*foreach ($payments as $payment)
+            /*foreach ($payments as $payment)
+             {
+                 if ($client['id'] == $payment->client_id) {
+                     $payment->client_commerce_name = $client['commerce_name'];
+                     break 2;
+                 }
+             }*/
+            $response = array();
+            foreach ($payments as $payment)
             {
                 if ($client['id'] == $payment->client_id) {
-                    $payment->client_commerce_name = $client['commerce_name'];
-                    break 2;
+                    array_push($response, ['client_commerce_name' => $client['commerce_name']]);
+                    // $payment->push(['client_commerce_name' => $client['commerce_name']]);
+                    //$payment->client_commerce_name = $client['commerce_name'];
+                    break;
                 }
-            }*/
-           $response = array();
-           foreach ($payments as $payment)
-           {
-               if ($client['id'] == $payment->client_id) {
-                   array_push($response, ['client_commerce_name' => $client['commerce_name']]);
-                  // $payment->push(['client_commerce_name' => $client['commerce_name']]);
-                   //$payment->client_commerce_name = $client['commerce_name'];
-                   break;
-               }
-           }
+            }
             /*$payments->each(function($payments) use($client){
                 if ($client['id'] == $payments->client_id) {
                     $payments->client_commerce_name = $client['commerce_name'];
@@ -75,9 +86,6 @@ class PaymentService extends BaseService
                 //$payments->user = $userService->getUser($request, $payments->username, false);
             });*/
         }
-
-        return $this->successResponse("Lista de Pagos", $response);
-
     }
 
     /**

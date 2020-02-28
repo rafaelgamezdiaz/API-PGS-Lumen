@@ -18,7 +18,7 @@ class Bill extends BaseModel
         'amount_paid'
     ];
 
-    protected $hidden = ['payment'];
+    //protected $hidden = ['payment'];
 
 
     public function payment()
