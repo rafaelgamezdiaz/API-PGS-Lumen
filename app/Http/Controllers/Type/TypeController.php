@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Type;
 
 use App\Http\Controllers\Controller;
 use App\Models\Type;
+use App\Services\TypeService;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 
@@ -11,9 +12,19 @@ class TypeController extends Controller
 {
     use ApiResponser;
 
-    public function index()
+    /**
+     * List all Payment methods
+     */
+    public function index(TypeService $typeService)
     {
-        $types = Type::all();
-        return $this->successResponse("Payment Type", $types);
+        return $typeService->index();
+    }
+
+    /**
+     * Get a payment method info
+     */
+    public function show($id, TypeService $typeService)
+    {
+        return $typeService->show($id);
     }
 }

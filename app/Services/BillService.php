@@ -99,6 +99,38 @@ class BillService extends BaseService
     }
 
     /**
+     * Returns all Payments for an specific Bill
+     */
+    public function showPayments($request, $id, $bill, $clientService, $methodService, $typeService)
+    {
+        $bills = Bill::where('bill_id', $id)
+                     ->get();
+        $bill_payments_list = collect();
+        foreach ($bills as $bill)
+        {
+            // Get Payment Conciliated
+            $bill_payment = $bill->payment;
+
+            // Formating the Json response
+            $temp = collect([
+                'payment_id' => $bill->payment_id,
+                'username_conciliation' => $bill->username,
+                'date_conciliation' => $bill->created_at,
+                'amount_paid' => $bill->amount_paid
+            ])->merge([
+                'type_id' => $typeService->show($bill_payment->type_id),
+                'method_id' => $methodService->show($bill_payment->method_id),
+                'client' => $clientService->getClient($request, $bill_payment->client_id, false),
+                'username_payment' => $bill_payment->username,
+                'payment_amount' => $bill_payment->amount,
+                'payment_created_at' => $bill_payment->created_at
+            ]);
+            $bill_payments_list->push($temp);
+        }
+        return $this->successResponse("Pagos conciliados con la factura: ".$id, $bill_payments_list);
+    }
+
+    /**
      * Return Bills pending amount to pay
      */
     public function getBillsAmountPending($bills_ids, $amounts)

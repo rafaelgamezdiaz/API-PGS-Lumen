@@ -36,11 +36,16 @@ $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($ro
     $router->patch('bills/{id}', 'Bill\BillController@update');
     $router->delete('bills/{id}', 'Bill\BillController@destroy');
 
+    // BIIL-PAYMENTS
+    $router->get('bills/{id}/payments', 'Bill\BillPaymentController@show');
+
     // METHODS ROUTES (Manage methods as "Tarjeta", "Efectivo", "Transferencia", ...)
     $router->get('methods', 'Method\MethodController@index');
+    $router->get('methods/{id}', 'Method\MethodController@show');
 
     // PAYMENT TYPE (Manage types as "A Enviar", "A Recibir")
     $router->get('types', 'Type\TypeController@index');
+    $router->get('types/{id}', 'Type\TypeController@show');
 
     // REPORT
     $router->post('report', 'Report\ReportController@automatic');
