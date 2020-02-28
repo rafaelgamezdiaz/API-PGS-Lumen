@@ -42,7 +42,7 @@ class ClientService extends BaseService
     {
         $endpoint = '/clients?account='.$account;
         //$endpoint = '/clients?account='.$account;
-        $client = $this->doRequest($request,'GET',  $endpoint, );
+        $client = $this->doRequest($request,'GET',  $endpoint);
         if ( $client == false) {
             return "Error! There is nor connection with API-Customers";
         }
