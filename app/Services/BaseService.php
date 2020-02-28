@@ -14,7 +14,6 @@ class BaseService
     protected $account;
     protected $username;
 
-
     public function __construct(Request $request)
     {
         $this->account = $this->getAccount($request);
