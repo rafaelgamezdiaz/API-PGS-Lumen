@@ -44,50 +44,6 @@ class PaymentService extends BaseService
         return $this->simpleResponse($payments);
     }
 
-    public function temp()
-    {
-        //return $clients;
-        foreach ( $clients as $client)
-        {
-            /*foreach ($payments as $payment)
-             {
-                 if ($client['id'] == $payment->client_id) {
-                     $payment->client_commerce_name = $client['commerce_name'];
-                     break 2;
-                 }
-             }*/
-            $response = array();
-            foreach ($payments as $payment)
-            {
-                if ($client['id'] == $payment->client_id) {
-                    array_push($response, ['client_commerce_name' => $client['commerce_name']]);
-                    // $payment->push(['client_commerce_name' => $client['commerce_name']]);
-                    //$payment->client_commerce_name = $client['commerce_name'];
-                    break;
-                }
-            }
-            /*$payments->each(function($payments) use($client){
-                if ($client['id'] == $payments->client_id) {
-                    $payments->client_commerce_name = $client['commerce_name'];
-                }
-            } );*/
-            /*{
-                if ($client['id'] == $payment->client_id) {
-                    $payment->client_commerce_name = $client['commerce_name'];
-                    break 2;
-                }
-            }*/
-            /*$payments->each(function($payments) use ($request, $client)
-            {
-                $payments->type;
-                $payments->method;
-
-                //$payments->client = $clientService->getClients($request, $payments->client_id, false);
-                //$payments->user = $userService->getUser($request, $payments->username, false);
-            });*/
-        }
-    }
-
     /**
      * Store a payment
      */

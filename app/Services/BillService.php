@@ -127,7 +127,11 @@ class BillService extends BaseService
             ]);
             $bill_payments_list->push($temp);
         }
-        return $this->successResponse("Pagos conciliados con la factura: ".$id, $bill_payments_list);
+        if ( count($bill_payments_list) > 0 )
+        {
+            return $this->successResponse("Pagos conciliados con la factura: ".$id, $bill_payments_list);
+        }
+        return $this->successResponse("No se han conciliado pagos con la factura: ".$id);
     }
 
     /**

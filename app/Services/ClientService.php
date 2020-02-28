@@ -4,17 +4,19 @@
 namespace App\Services;
 
 use App\Traits\ApiResponser;
+use Illuminate\Http\Request;
 
 class ClientService extends BaseService
 {
     use ApiResponser;
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->baseUri  = config('services.clients.base_url');
         $this->port     = config('services.clients.port');
         $this->secret   = config('services.clients.secret');
         $this->prefix   = config('services.clients.prefix');
+        parent::__construct($request);
     }
 
     /**
