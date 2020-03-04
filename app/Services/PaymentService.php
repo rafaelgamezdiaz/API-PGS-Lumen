@@ -107,6 +107,11 @@ class PaymentService extends BaseService
             return $this->errorMessage('Lo sentimos, este pago ya se encuentra asignado a alguna factura, por lo que no puede ser actualizado.');
         };
 
+        if( $this->checkCode($request->reference) )
+        {
+            return $this->errorMessage('Lo sentimos, la refenrecia: '.$request->reference.', ya esta siendo utilizada en otro pago');
+        };
+
         $this->validate($request, $payment->rules_update());
 
         // Only the amount_pending needs to be updated
@@ -117,6 +122,11 @@ class PaymentService extends BaseService
             return $this->successResponse("Pago actualizado con éxito.");
         }
         return $this->errorMessage('Ha ocurrido un error al intentar actualizar el pago.', 409);
+    }
+
+    public function checkCode($reference)
+    {
+        return count(Payment::where('reference', $reference)->where('account', $this->account)->get()) > 0;
     }
 
     /**
@@ -183,6 +193,7 @@ class PaymentService extends BaseService
                      'username'  => $this->username,
                      'account'   => $this->account,
                      'amount'    => $payment_element['amount'],
+                     'reference' => $payment_element['reference'],
                      'amount_pending' => $payment_element['amount']
                  ]);
             }
@@ -192,7 +203,7 @@ class PaymentService extends BaseService
             DB::rollback();
             return response()->json([
                 "status" => 500,
-                "message" => "No se ha podido realizar la carga masiva de pagos."
+                "message" => "No se ha podido realizar la carga masiva de pagos. Puede que ya exista alguno de los pagos o que haya un error en el archivo de carga."
             ], 500);
         }
         return $this->successResponse('Carga masiva de pagos realizada con éxito.');

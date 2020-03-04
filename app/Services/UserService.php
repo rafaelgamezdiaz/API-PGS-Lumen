@@ -24,14 +24,11 @@ class UserService extends BaseService
     {
         $endpoint = '/users/'.$username;
 
-        $user = $this->doRequest($request, 'GET',  $endpoint)
-                     ->recursive()
-                     ->first();
-
+        $user = collect($this->doRequest($request, 'GET',  $endpoint)->first())
+                ->recursive();
         if ( $user == false) {
             return "Error! There is nor connection with API-Users";
         }
-
         // Returns Client data. $extended == true --> full info, else returns specific fields.
         $user_fields = $user->only(['id','name']);
         return ($extended == true) ? $user : $user_fields;

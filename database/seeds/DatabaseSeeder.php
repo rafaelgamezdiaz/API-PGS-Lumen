@@ -13,5 +13,6 @@ class DatabaseSeeder extends Seeder
     {
          $this->call('PaymentMethodSeeder');
          $this->call('PaymentTypeSeeder');
+    //     $this->call('PaymentSeeder');
     }
 }
