@@ -13,6 +13,7 @@ class Payment extends BaseModel
 
     protected $table ='payments';
     protected $fillable = [
+        'reference',
         'type_id',
         'method_id',
         'client_id',
@@ -30,6 +31,7 @@ class Payment extends BaseModel
     public function rules()
     {
         return [
+            'reference'         => 'required',
             'type_id'           => 'required|numeric',
             'method_id'         => 'required|numeric',
             'client_id'         => 'required|numeric',
