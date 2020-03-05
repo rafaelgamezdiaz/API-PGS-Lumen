@@ -22,12 +22,10 @@ class PaymentService extends BaseService
         if (isset($_GET['where'])) {
             $payments = Payment::doWhere($request)
                 ->where('account', $this->account)
-                ->where('status', Payment::PAYMENT_STATUS_AVAILABLE)
                 ->orderBy('created_at', 'desc');
         }
         else{
             $payments =  Payment::where('account', $this->account)
-                ->where('status', Payment::PAYMENT_STATUS_AVAILABLE)
                 ->orderBy('created_at', 'desc');
         }
 
@@ -193,7 +191,7 @@ class PaymentService extends BaseService
                      'username'  => $this->username,
                      'account'   => $this->account,
                      'amount'    => $payment_element['amount'],
-                     'reference' => $payment_element['reference'],
+                     'reference' => $payment_element['document'],
                      'amount_pending' => $payment_element['amount']
                  ]);
             }
