@@ -40,6 +40,7 @@ dev_build_job:
       - sed -i -e "s;^\s*SALES_SERVICE_PORT=.*;SALES_SERVICE_PORT=;g" .env
       - sed -i -e "s;^\s*SALES_SERVICE_SECRET=.*;SALES_SERVICE_SECRET=;g" .env
       - sed -i -e "s;^\s*SALES_PREFIX=.*;SALES_PREFIX=sl;g" .env
+      - sed -i -e "s;^\s*ACCOUNT_URL=.*;ACCOUNT_URL=https://devacc.zippyttech.com/acc/;g" .env
       - docker build -t devpay-api .
   when: on_success
   tags:
@@ -108,6 +109,7 @@ qa_build_job:
       - sed -i -e "s;^\s*SALES_SERVICE_PORT=.*;SALES_SERVICE_PORT=;g" .env
       - sed -i -e "s;^\s*SALES_SERVICE_SECRET=.*;SALES_SERVICE_SECRET=;g" .env
       - sed -i -e "s;^\s*SALES_PREFIX=.*;SALES_PREFIX=sl;g" .env
+      - sed -i -e "s;^\s*ACCOUNT_URL=.*;ACCOUNT_URL=https://qaacc.zippyttech.com/acc/;g" .env 
       - docker build -t qapay-api .
   when: on_success
   tags:
@@ -176,6 +178,7 @@ prod_build_job:
       - sed -i -e "s;^\s*SALES_SERVICE_PORT=.*;SALES_SERVICE_PORT=;g" .env
       - sed -i -e "s;^\s*SALES_SERVICE_SECRET=.*;SALES_SERVICE_SECRET=;g" .env
       - sed -i -e "s;^\s*SALES_PREFIX=.*;SALES_PREFIX=sl;g" .env
+      - sed -i -e "s;^\s*ACCOUNT_URL=.*;ACCOUNT_URL=https://acc.zippyttech.com/acc/;g" .env
       - docker build -t prodpay-api .
   when: on_success
   tags:
