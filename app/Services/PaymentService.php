@@ -100,12 +100,12 @@ class PaymentService extends BaseService
         $payment = Payment::findOrFail($id);
 
         // Check if the Payment is already assigned.
-        $bills = $payment->has('bills')->get();
+        $bills = $payment->bills;
         if(count($bills)) {
             return $this->errorMessage('Lo sentimos, este pago ya se encuentra asignado a alguna factura, por lo que no puede ser actualizado.');
         };
 
-        if( $this->checkCode($request->reference) )
+        if( $this->checkCode($request->reference, $id) )
         {
             return $this->errorMessage('Lo sentimos, la refenrecia: '.$request->reference.', ya esta siendo utilizada en otro pago');
         };
@@ -122,9 +122,13 @@ class PaymentService extends BaseService
         return $this->errorMessage('Ha ocurrido un error al intentar actualizar el pago.', 409);
     }
 
-    public function checkCode($reference)
+    public function checkCode($reference, $id)
     {
-        return count(Payment::where('reference', $reference)->where('account', $this->account)->get()) > 0;
+        $payments = Payment::whereNotIn('id',[$id])
+                           ->where('reference', $reference)
+                           ->where('account', $this->account)
+                           ->get();
+        return count($payments) > 0;
     }
 
     /**
