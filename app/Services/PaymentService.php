@@ -205,7 +205,7 @@ class PaymentService extends BaseService
             DB::rollback();
             return response()->json([
                 "status" => 500,
-                "message" => "No se ha podido realizar la carga masiva de pagos. Puede que ya exista alguno de los pagos o que haya un error en el archivo de carga."
+                "message" => "No se ha podido realizar la carga masiva de pagos. Alguno de los pagos está siendo creado por duplicado."
             ], 500);
         }
         return $this->successResponse('Carga masiva de pagos realizada con éxito.');
