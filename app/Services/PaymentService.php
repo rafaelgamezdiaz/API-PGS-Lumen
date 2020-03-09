@@ -22,10 +22,12 @@ class PaymentService extends BaseService
         if (isset($_GET['where'])) {
             $payments = Payment::doWhere($request)
                 ->where('account', $this->account)
+                ->orderBy('status', 'desc')
                 ->orderBy('created_at', 'desc');
         }
         else{
-            $payments =  Payment::where('account', $this->account)
+            $payments = Payment::where('account', $this->account)
+                ->orderBy('status', 'desc')
                 ->orderBy('created_at', 'desc');
         }
 
