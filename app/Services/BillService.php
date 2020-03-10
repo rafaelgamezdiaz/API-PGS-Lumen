@@ -145,6 +145,7 @@ class BillService extends BaseService
                     collect(['id'])->combine($bills_ids),
                     collect(['amount'])->combine($amounts[$key])]);
         });
+
         return $bills;
     }
 
@@ -263,4 +264,17 @@ class BillService extends BaseService
         }
         return true;
     }
+
+    public function getBillNumber($request, $bill_id)
+    {
+        $url = env('SALES_SERVICE_BASE_URL') .env('SALES_SERVICE_PREFIX').'/operations/' . $bill_id;
+        $billExist = $this->doRequest($request,'GET',  $url);
+        if (isset($billExist['response']->status) ) {
+            if ( $billExist['response']->status == 404 ) {
+                return false;
+            }
+        }
+        return $billExist;
+    }
+
 }

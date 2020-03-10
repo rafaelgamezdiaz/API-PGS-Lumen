@@ -84,14 +84,34 @@ class PaymentService extends BaseService
     /**
      * Show payment details
      */
-    public function show($request, $id, $clientService, $userService){
-        $payment = Payment::findOrFail($id)
-                           ->where('status', Payment::PAYMENT_STATUS_AVAILABLE);
-        $payment->type_id;
-        $payment->method_id;
+    public function show($request, $id, $clientService, $userService, $billService){
+        $payment = Payment::findOrFail($id);
+
+        // Get Payment Bills
+        $bills = $payment->bills;
+        $bills->each(function($bills) use($request, $billService){
+            $bills->invoice_id = $billService->getBillNumber($request, $bills->bill_id)['operation']['id_invoice'];
+        });
+        unset($payment['bills']);
+        $payment->bills = $bills;
+
+        // Get Paymemnt type
+        $type = $payment->type['type'];
+        unset($payment['type']);
+        $payment->type = $type;
+
+        // Get Payment Method
+        $method = $payment->method['method'];
+        unset($payment['method']);
+        $payment->method = $method;
+
+        // Get Payment Client
         $payment->client = $clientService->getClient($request, $payment->client_id, false);
+
+        // Get Payment User
         $payment->user = $userService->getUser($request, $payment->username, false);
-        return $payment;
+
+        return $this->simpleResponse($payment);
     }
 
     /**
