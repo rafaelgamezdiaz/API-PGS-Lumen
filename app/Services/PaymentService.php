@@ -136,7 +136,7 @@ class PaymentService extends BaseService
 
         // Only the amount_pending needs to be updated
         $payment->fill($request->all());
-        //$payment->amount_pending = $request->amount_pending;
+        $payment->amount_pending = $request->amount;
 
         if ($payment->update()) {
             return $this->successResponse("Pago actualizado con éxito.");
