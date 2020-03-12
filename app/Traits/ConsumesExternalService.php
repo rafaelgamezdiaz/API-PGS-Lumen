@@ -200,24 +200,28 @@ trait ConsumesExternalService
             return json_decode($response->getBody(), true);
 
         }catch (ClientException $exception){
+            Log::critical("ClientException");
             Log::critical($exception->getResponse()->getBody());
             $response['status'] = false;
             $response['response'] = json_decode($exception->getResponse()->getBody());
             $response['code'] = $exception->getResponse()->getStatusCode();
             return $response;
         }catch (ServerException $exception){
+            Log::critical("ServerException");
             Log::critical($exception->getResponse()->getBody());
             $response['status'] = false;
             $response['response'] = json_decode($exception->getResponse()->getBody());
             $response['code'] = $exception->getResponse()->getStatusCode();
             return $response;
         }catch (GuzzleException $exception){
+            Log::critical("GuzzleException");
             Log::critical($exception->getMessage() . "\n" . $exception->getFile() . "\n" . $exception->getLine());
             $response['status'] = false;
             $response['response'] = $exception->getMessage();
             $response['connection'] = 'refused';
             return $response;
         }catch (Exception $exception){
+            Log::critical("Exception");
             Log::critical($exception->getMessage() . "\n" . $exception->getFile() . "\n" . $exception->getLine());
             $response['status'] = false;
             $response['response'] = $exception->getMessage();
