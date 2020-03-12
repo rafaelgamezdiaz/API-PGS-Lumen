@@ -53,16 +53,19 @@ class BillService extends BaseService
         // Get amounts available in payments
         $payments = $this->getAmountsAvailable($payments_ids);
 
+
         // Get Bills Amount Pending
         $bills_ids = collect($request->bill_id);
         $amounts = collect($request->amount);  // Bills amount (from API-ventas)
         $bills = $this->getBillsAmountPending($bills_ids, $amounts);
 
         $response = array();
+
         if ($this->testConnection($request)) {
             foreach ($bills as $bill)
             {
                 if ($this->checkIFBillExist($request, $bill[0]['id'])) {
+
                     foreach ($payments as $payment)
                     {
                         $amount_available = Payment::findOrFail($payment['id'])->only(['amount_pending'])['amount_pending'];
@@ -183,7 +186,6 @@ class BillService extends BaseService
      */
     public function cociliatePayment($request, $payment_id, $bill_id, $amount_available, $amount_paid, $amount_pending)
     {
-
         try {
             DB::beginTransaction();
 
@@ -207,7 +209,8 @@ class BillService extends BaseService
 
             // POST to Sales API
             $url = env('SALES_SERVICE_BASE_URL') .env('SALES_SERVICE_PREFIX').'/amount/operation/' . $bill_id;
-            $postSales = $this->doRequest($request,'PUT',  $url, ['amount' => $amount_pending]);
+            LOG::info("Updating in API-Sales");
+            $postSales = $this->doRequest($request,'PUT',  $url, ['amount' => $amount_paid]);
             LOG::info($postSales);
             if ($postSales['status'] == false) {
                 DB::rollback();
@@ -255,7 +258,7 @@ class BillService extends BaseService
 
     private function checkIFBillExist($request, $bill_id)
     {
-        $url = env('SALES_SERVICE_BASE_URL') .env('SALES_SERVICE_PREFIX').'/amount/operation/' . $bill_id;
+        $url = env('SALES_SERVICE_BASE_URL') .env('SALES_SERVICE_PREFIX').'/operations/' . $bill_id;
         $billExist = $this->doRequest($request,'GET',  $url);
         if (isset($billExist['response']->status) ) {
             if ( $billExist['response']->status == 404 ) {
