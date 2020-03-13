@@ -89,9 +89,12 @@ class PaymentService extends BaseService
 
         // Get Payment Bills
         $bills = $payment->bills;
+
         $bills->each(function($bills) use($request, $billService){
             $bills->invoice_id = $billService->getBillNumber($request, $bills->bill_id)['operation']['id_invoice'];
+            $bills->total_amount = $billService->getBillNumber($request, $bills->bill_id)['operation']['total'];
         });
+
         unset($payment['bills']);
         $payment->bills = $bills;
 
