@@ -17,23 +17,21 @@ class PaymentService extends BaseService
     /**
      * Return payment list
      */
-    public function index($request, $clientService, $userService)
+    public function index($request, $clientService, $userService, $is_query_report = false)
     {
-        if (isset($_GET['where'])) {
-            $payments = Payment::doWhere($request)
-                ->where('account', $this->account)
-                ->orderBy('status', 'desc')
-                ->orderBy('created_at', 'desc');
-        }
-        else{
-            $payments = Payment::where('account', $this->account)
-                ->orderBy('status', 'desc')
-                ->orderBy('created_at', 'desc');
-        }
-
+        $payments = $this->getPayments($request);
         $limit = $request->has('limit') ? $request->input('limit') : 10;
         $payments = ($request->has('paginate') && $request->paginate=='true') ? $payments->paginate($limit) : $payments->get();
-
+        if ($is_query_report == true) {
+            $payments->each(function($payments) use ($request, $clientService, $userService)
+            {
+                $payments->type;
+                $payments->method;
+                $payments->client = $clientService->getClient($request, $payments->client_id, false);
+                $payments->user = $userService->getUser($request, $payments->username, false);
+            });
+            return $payments;
+        }
         $payments->each(function($payments) use ($request, $clientService, $userService)
         {
             $payments->type;
@@ -42,6 +40,21 @@ class PaymentService extends BaseService
             $payments->user = $userService->getUser($request, $payments->username, false);
         });
         return $this->simpleResponse($payments);
+    }
+
+    private function getPayments($request)
+    {
+        if (isset($_GET['where'])) {
+            return Payment::doWhere($request)
+                ->where('account', $this->account)
+                ->orderBy('status', 'desc')
+                ->orderBy('created_at', 'desc');
+        }
+        else{
+            return Payment::where('account', $this->account)
+                ->orderBy('status', 'desc')
+                ->orderBy('created_at', 'desc');
+        }
     }
 
     /**

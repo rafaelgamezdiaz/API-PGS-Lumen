@@ -12,7 +12,7 @@
         border-collapse: collapse;
         max-width: 100%;
         min-width: 100%;
-        margin-top: 20px;
+        margin-top: 30px;
     }
     th, td {
         text-align: center;
@@ -31,9 +31,9 @@
     }
     img {
         position: absolute !important;
-        left: 30px !important;
-        top: 30px !important;
-        width: 85px !important;
+        right: 30px !important;
+        top: 20px !important;
+        width: 75px !important;
     }
 </style>
 <body>
@@ -44,7 +44,10 @@
         <div style="text-align: center;">
             <h2>Reporte de <?= $title ?></h2>
         </div>
-
+        <div>
+            <p><strong>Fecha de emision:</strong> <?= $date; ?></p>
+            <p><strong>Usuario:</strong> <?= $username; ?></p>
+        </div>
     </div>
     <div>
         <table>
