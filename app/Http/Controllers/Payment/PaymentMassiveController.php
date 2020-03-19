@@ -11,21 +11,10 @@ use Illuminate\Http\Request;
 class PaymentMassiveController extends Controller
 {
      /**
-     * Show Payments List
-     */
-     /* public function index(Request $request, PaymentService $paymentService, ClientService $clientService, UserService $userService)
-        {
-            return $paymentService->index($request, $clientService, $userService);
-        }*/
-
-     /**
      * Store a Massive Data Load of Payments
      */
     public function store(Request $request, PaymentService $paymentService)
     {
         return $paymentService->massiveStore($request);
     }
-
-
-
 }

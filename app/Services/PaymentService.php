@@ -17,11 +17,48 @@ class PaymentService extends BaseService
     /**
      * Return payment list
      */
+
     public function index($request, $clientService, $userService, $is_query_report = false)
     {
         $payments = $this->getPayments($request);
         $limit = $request->has('limit') ? $request->input('limit') : 10;
         $payments = ($request->has('paginate') && $request->paginate=='true') ? $payments->paginate($limit) : $payments->get();
+        if ($is_query_report == true) {
+            $payments->each(function($payments) use ($request, $clientService, $userService)
+            {
+                $payments->type;
+                $payments->method;
+                $payments->client = $clientService->getClient($request, $payments->client_id, false);
+                $payments->user = $userService->getUser($request, $payments->username, false);
+            });
+            return $payments;
+        }
+        $payments->each(function($payments) use ($request, $clientService, $userService)
+        {
+            $payments->type;
+            $payments->method;
+            $payments->client = $clientService->getClient($request, $payments->client_id, false);
+            $payments->user = $userService->getUser($request, $payments->username, false);
+        });
+        return $this->simpleResponse($payments);
+    }
+
+
+    public function index2($request, $clientService, $userService, $is_query_report = false)
+    {
+        $payments = $this->getPayments($request);
+        $limit = $request->has('limit') ? $request->input('limit') : 10;
+        $payments = ($request->has('paginate') && $request->paginate=='true') ? $payments->paginate($limit) : $payments->get();
+
+        $clients_ids = $payments->pluck('client_id')->unique();
+        $usersnames = $payments->pluck('username')->unique()->toArray();
+        $user = array();
+        foreach ($usersnames as $name){
+            array_push($user, $name);
+        }
+        $clients = $clientService->getClientsInfo($request, $clients_ids);
+        return $users = $userService->getUsersInfo($request, collect($user), false);
+
         if ($is_query_report == true) {
             $payments->each(function($payments) use ($request, $clientService, $userService)
             {
@@ -234,7 +271,8 @@ class PaymentService extends BaseService
                      'account'   => $this->account,
                      'amount'    => $payment_element['amount'],
                      'reference' => $payment_element['document'],
-                     'amount_pending' => $payment_element['amount']
+                     'amount_pending' => $payment_element['amount'],
+                     'created_at'   => $payment_element['fecha_pago']
                  ]);
             }
             DB::commit();
