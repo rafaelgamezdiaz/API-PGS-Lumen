@@ -38,10 +38,11 @@ class ReportController extends Controller
     {
         $index = [
             'ITEM'                  =>'id',
+            'Codigo empresa'        =>'contract',
             'Tipo de pago'          =>'type',
             'Cliente'               =>'client',
             'Documento'             =>'reference',
-            'Usuario'               =>'username',
+            'Cobrador'              =>'username',
             'Monto del Pago'        =>'amount',
             'Forma de pago'         =>'method',
             'Monto Disponible'      =>'amount_pending',
@@ -74,9 +75,10 @@ class ReportController extends Controller
                 array_push($table, [
                     'id'            => $item,
                     'type'          => $payment['type']['type'],
+                    'contract'      => $payment['client']['contract'],
                     'client'        => $payment['client']['commerce_name'],
                     'reference'     => $payment['reference'],
-                    'username'      => $payment['user']['name'],
+                    'username'      => $payment['username'],
                     'amount'        => $payment['amount'],
                     'method'        => $payment['method']['method'],
                     'amount_pending' => $payment['amount_pending'],

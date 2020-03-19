@@ -19,8 +19,27 @@ class ClientService extends BaseService
         parent::__construct($request);
     }
 
+    public function getClientsInfo($request, $ids)
+    {
+        $fields = '"clients.id","clients.name","clients.last_name","clients.commerce_name"';
+
+        $endpoint = '/clients?where=[{"op":"in","field":"clients.id","value":'.$ids.'}]&account='.$this->account.'&columns=['.$fields.']';
+       // return $clients = $this->doRequest($request,'GET',  $endpoint);
+        $clients = $this->doRequest($request,'GET',  $endpoint)
+            ->recursive()
+            ->first();
+        if ( $clients == false) {
+            return "Error! There is nor connection with API-Customers";
+        }
+        return $clients;
+    }
+
     /**
      * Returns a Client from API-Customers, by id
+     * @param $request
+     * @param $id
+     * @param bool $extended
+     * @return string
      */
     public function getClient($request, $id, $extended = true)
     {
@@ -31,10 +50,16 @@ class ClientService extends BaseService
         if ( $client == false) {
             return "Error! There is nor connection with API-Customers";
         }
-
         // Returns Client data. $extended == true --> full info, else returns specific fields.
-        $client_fields = $client->only(['id','name','last_name','commerce_name']);
+        $client_fields = $client->only(['id','name','last_name','commerce_name', 'contract']);
         return ($extended == true) ? $client : $client_fields;
+        /* $clients_info = array();
+        foreach ($ids as $id){
+            array_push($clients_info, [
+                $id => $this->getClient($request, $id, false)
+            ]);
+        }
+        return $clients_info;*/
     }
 
     /**

@@ -54,7 +54,7 @@ class Handler extends ExceptionHandler
         }
         if ($exception instanceof ModelNotFoundException) {
             $model = strtolower(class_basename($exception->getModel()));
-            return $this->errorMessage("Doeas not exist any instance of {$model} with the given id", Response::HTTP_NOT_FOUND);
+            return $this->errorMessage("No existe una instancia de {$model} con ese id", Response::HTTP_NOT_FOUND);
         }
         if ($exception instanceof AuthorizationException) {
             return $this->errorMessage($exception->getMessage(), Response::HTTP_FORBIDDEN);
