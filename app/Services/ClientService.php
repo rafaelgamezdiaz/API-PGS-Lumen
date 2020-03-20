@@ -19,27 +19,33 @@ class ClientService extends BaseService
         parent::__construct($request);
     }
 
-    public function getClientsInfo($request, $ids)
+    /**
+     * Returns all Client from API-Customers from lot of arrays of ids
+     * id = [ [], [], [] ]
+     */
+    public function getClientsList($request, $ids)
     {
-        $fields = '"clients.id","clients.name","clients.last_name","clients.commerce_name"';
-
-        $endpoint = '/clients?where=[{"op":"in","field":"clients.id","value":'.$ids.'}]&account='.$this->account.'&columns=['.$fields.']';
-       // return $clients = $this->doRequest($request,'GET',  $endpoint);
-        $clients = $this->doRequest($request,'GET',  $endpoint)
-            ->recursive()
-            ->first();
-        if ( $clients == false) {
-            return "Error! There is nor connection with API-Customers";
+        $clients_list = array();
+        foreach ($ids as $id){
+            $fields = '"clients.id","clients.name","clients.last_name","clients.commerce_name","clients.contract"';
+            $endpoint = '/clients?where=[{"op":"in","field":"clients.id","value":'.collect($id).'}]&account='.$this->account.'&columns=['.$fields.']';
+            $clients = $this->getResource($request, $endpoint);
+            if ($clients['status'] !== 200 ) {
+                return $clients;
+            }
+            foreach ( $clients['list'] as $client ){
+                $clients_list[$client['id']] = $client;
+            }
         }
-        return $clients;
+
+        return [
+            'status' => 200,
+            'list' => $clients_list
+        ];
     }
 
     /**
      * Returns a Client from API-Customers, by id
-     * @param $request
-     * @param $id
-     * @param bool $extended
-     * @return string
      */
     public function getClient($request, $id, $extended = true)
     {
@@ -53,30 +59,6 @@ class ClientService extends BaseService
         // Returns Client data. $extended == true --> full info, else returns specific fields.
         $client_fields = $client->only(['id','name','last_name','commerce_name', 'contract']);
         return ($extended == true) ? $client : $client_fields;
-        /* $clients_info = array();
-        foreach ($ids as $id){
-            array_push($clients_info, [
-                $id => $this->getClient($request, $id, false)
-            ]);
-        }
-        return $clients_info;*/
     }
 
-    /**
-     * Returns a Client from API-Customers, by id
-     */
-    public function getClients($request, $account, $extended = true)
-    {
-        $endpoint = '/clients?account='.$account;
-        //$endpoint = '/clients?account='.$account;
-        $client = $this->doRequest($request,'GET',  $endpoint);
-        if ( $client == false) {
-            return "Error! There is nor connection with API-Customers";
-        }
-
-        // Returns Client data. $extended == true --> full info, else returns specific fields.
-        $client_fields = $client['list']; //->only(['id', 'commerce_name']);
-        return $client_fields;
-        //return ($extended == true) ? $client : $client_fields;
-    }
 }

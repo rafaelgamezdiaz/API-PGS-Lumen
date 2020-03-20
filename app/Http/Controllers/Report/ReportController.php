@@ -13,11 +13,13 @@ use App\Services\ClientService;
 use App\Services\PaymentService;
 use App\Services\ReportService;
 use App\Services\UserService;
+use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
 
+    use ApiResponser;
     /**
      * The service to consume the client service
      */
@@ -49,7 +51,14 @@ class ReportController extends Controller
             'Fecha/Hora de pago'    =>'created_at',
             'Estado'                =>'status'
         ];
-        $payments = $paymentService->index($request, $clientService, $userService, true);
+        $payments = $paymentService->dataForReport($request, $clientService, $userService);
+
+        if ($payments['status'] == 500) {
+            return $this->errorMessage('Error de conexion. No es posible generar el reporte');
+        }
+        $payments = $payments['list'];
+        $payments = collect($payments)->recursive();
+
         $info = $this->buildReportTable($payments);
         $report = (new ReportService());
         $report->indexPerSheet($index);
@@ -69,16 +78,18 @@ class ReportController extends Controller
 
     private function buildReportTable($payments){
         $table = array();
-        $payments = collect($payments)->recursive();
         $item = 1;
         foreach ($payments as $payment){
+                $contract = isset($payment['client']['contract']) ? $payment['client']['contract'] : "";
+                $commerce_name = isset($payment['client']['commerce_name']) ? $payment['client']['commerce_name'] : "";
+                $user = isset($payment['user']['name']) ? $payment['user']['name'] : "";
                 array_push($table, [
                     'id'            => $item,
                     'type'          => $payment['type']['type'],
-                    'contract'      => $payment['client']['contract'],
-                    'client'        => $payment['client']['commerce_name'],
+                    'client'        => $commerce_name,
+                    'contract'      => $contract,
                     'reference'     => $payment['reference'],
-                    'username'      => $payment['username'],
+                    'username'      => $user,
                     'amount'        => $payment['amount'],
                     'method'        => $payment['method']['method'],
                     'amount_pending' => $payment['amount_pending'],
