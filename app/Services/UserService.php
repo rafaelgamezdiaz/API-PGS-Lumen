@@ -4,32 +4,43 @@
 namespace App\Services;
 
 use App\Traits\ApiResponser;
+use Illuminate\Http\Request;
 
 class UserService extends BaseService
 {
     use ApiResponser;
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->baseUri  = config('services.users.base_url');
         $this->port     = config('services.users.port');
         $this->secret   = config('services.users.secret');
         $this->prefix   = config('services.users.prefix');
+        parent::__construct($request);
     }
 
-    public function getUsersInfo($request, $usersnames, $extended = true)
+    /**
+     * Returns all Users from API-Users from lot of arrays of usernames
+     * usernames = [ [], [], [] ]
+     */
+    public function getUsersList($request, $usersnames)
     {
-        $fields = '"users.id","users.name"';
-        $endpoint = '/users?where=[{"op":"in","field":"users.username","value":'.$usersnames.'}]&account='.$this->account.'&columns=['.$fields.']';
-        //$users = $this->doRequest($request,'GET',  $endpoint);
-        $users = $this->doRequest($request,'GET',  $endpoint)
-            ->recursive()
-            ->first();
-        if ( $users == false) {
-            return "Error! There is nor connection with API-Users";
+        $users_list = array();
+        foreach ($usersnames as $usersnames_lot) {
+            $fields = '"users.id","users.name"';
+            $endpoint = '/users?where=[{"op":"in","field":"users.username","value":' . collect($usersnames_lot) . '}]&account=' . $this->account . '&columns=[' . $fields . ']';
+            $users = $this->getResource($request, $endpoint);
+            if ($users['status'] !== 200 ) {
+                return $users;
+            }
+            foreach ($users['list'] as $user) {
+                $users_list[$user['username']] = collect($user)->only(['id','name']);
+            }
         }
-        $user_fields = $users->only(['id','name']);
-        return ($extended == true) ? $users : $user_fields;
+        return [
+            'status' => 200,
+            'list' => $users_list
+        ];
     }
 
     /**
@@ -45,7 +56,6 @@ class UserService extends BaseService
             return "Error! There is nor connection with API-Users";
         }
         // Returns Client data. $extended == true --> full info, else returns specific fields.
-       return $user;
         $user_fields = $user->only(['id','name']);
         return ($extended == true) ? $user : $user_fields;
     }

@@ -28,18 +28,20 @@ class BaseService
         return collect($response);
     }
 
-    public function getClient($request, $id, $extended = true)
+    public function getResource($request, $endpoint)
     {
-        $endpoint = '/clients/'.$id;
-        $client = $this->doRequest($request,'GET',  $endpoint)
-            ->recursive()
-            ->first();
-        if ( $client == false) {
-            return "Error! There is nor connection with API-Customers";
+        $resource = $this->doRequest($request,'GET',  $endpoint);
+        if ( $resource['status'] == false  ) {
+            if (is_object($resource['response'])) {
+                return ['status' => $resource['response']->status, 'error' => $resource['response']->message ];
+            }else{
+                return ['status' => $resource['response']['status'], 'error' => $resource['response']['message']];
+            }
         }
-
-        // Returns Client data. $extended == true --> full info, else returns specific fields.
-        $client_fields = $client->only(['id','name','last_name','commerce_name']);
-        return ($extended == true) ? $client : $client_fields;
+        return [
+            'status' => 200,
+            'list' =>  $resource['list']
+        ];
     }
+
 }

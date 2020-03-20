@@ -43,40 +43,43 @@ class PaymentService extends BaseService
         return $this->simpleResponse($payments);
     }
 
-
-    public function index2($request, $clientService, $userService, $is_query_report = false)
+    public function dataForReport($request, $clientService, $userService)
     {
         $payments = $this->getPayments($request);
-        $limit = $request->has('limit') ? $request->input('limit') : 10;
-        $payments = ($request->has('paginate') && $request->paginate=='true') ? $payments->paginate($limit) : $payments->get();
 
-        $clients_ids = $payments->pluck('client_id')->unique();
-        $usersnames = $payments->pluck('username')->unique()->toArray();
-        $user = array();
-        foreach ($usersnames as $name){
-            array_push($user, $name);
+        // Lot size. Makes queries to Customers-API and Users-API in lots of specific sizes
+        // This is important because where is send by URL and can't be so larges
+        $lot = 150;
+        $clients_ids = $this->chunkIt($payments, 'client_id', $lot);
+        $usernames = $this->chunkIt($payments, 'username', $lot);
+
+        // Get Users and Clients
+        $clients = $clientService->getClientsList($request, $clients_ids);
+        $users = $userService->getUsersList($request, $usernames);
+        if ($clients['status'] == 500 || $users['status'] == 500) {
+            return [
+                'status' => 500,
+                'list' => $payments
+            ];
         }
-        $clients = $clientService->getClientsInfo($request, $clients_ids);
-        return $users = $userService->getUsersInfo($request, collect($user), false);
+        $clients = $clients['list'];
+        $users = $users['list'];
 
-        if ($is_query_report == true) {
-            $payments->each(function($payments) use ($request, $clientService, $userService)
+        // Get Payments with Relationships
+        $payments = $payments->get();
+        $payments->each(function($payments) use ($request, $clientService, $userService, $clients, $users)
             {
                 $payments->type;
                 $payments->method;
-                $payments->client = $clientService->getClient($request, $payments->client_id, false);
-                $payments->user = $userService->getUser($request, $payments->username, false);
+                $client_key = strval($payments->client_id);
+                $user_key = strval($payments->username);
+                $payments->client = array_key_exists($client_key, $clients) ? $clients[$client_key] : [];
+                $payments->user = array_key_exists($user_key, $users) ? $users[$user_key] : [];
             });
-            return $payments;
-        }
-        $payments->each(function($payments) use ($request, $clientService, $userService)
-        {
-            $payments->type;
-            $payments->method;
-            $payments->client = $clientService->getClient($request, $payments->client_id, false);
-            $payments->user = $userService->getUser($request, $payments->username, false);
-        });
-        return $this->simpleResponse($payments);
+        return [
+            'status' => 200,
+            'list' => $payments
+        ];
     }
 
     private function getPayments($request)
@@ -292,4 +295,12 @@ class PaymentService extends BaseService
         return count(Bill::where('bill_id',$bill_id)->get());
     }
 
+    private function chunkIt($source, $field, $lot){
+        $item = $source->pluck($field)->unique()->toArray();
+        $response = array();
+        foreach ($item as $element){
+            $response[] = $element;
+        }
+        return array_chunk($response, $lot);
+    }
 }
