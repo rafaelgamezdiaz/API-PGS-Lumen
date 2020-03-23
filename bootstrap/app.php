@@ -81,9 +81,16 @@ $app->middleware([
 */
 
 $app->register(App\Providers\AppServiceProvider::class);
+
+// Laravel Snappy PDF
+class_alias('Barryvdh\Snappy\Facades\SnappyPdf', 'PDF');
+$app->register(Barryvdh\Snappy\LumenServiceProvider::class);
+
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 $app->register(Nord\Lumen\Cors\CorsServiceProvider::class);
+
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
