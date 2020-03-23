@@ -191,9 +191,12 @@ trait ConsumesExternalService
                     $response = $client->post( $requestUrl, ['json' => $formParams, 'headers' => $headers]);
                 }
             }elseif($method=='PUT'){
-                $response = $client->put($requestUrl, ['json' => $formParams->all(), 'headers' => $headers]);
+                if($formParams instanceof Request){
+                    $response = $client->put($requestUrl, ['json' => $formParams->all(), 'headers' => $headers]);
+                }else {
+                    $response = $client->put($requestUrl, ['json' => $formParams, 'headers' => $headers]);
+                }
             }else{
-                //$response = $client->request($method, $requestUrl, ['json' => $formParams, 'headers' => $headers], ['connect_timeout' => 2, 'timeout' => 3, 'debug' => true]);
                 $response = $client->request($method, $requestUrl,  ['json' => $formParams, 'headers' => $headers]);
             }
             $return = json_decode($response->getBody(),true);

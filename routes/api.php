@@ -11,10 +11,6 @@
 |
 */
 
-$router->get('phpinfo/', function(){
-    return phpinfo();
-});
-
 $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($router) {  // , 'middleware' => 'auth'
 
     // PAYMENT ROUTES
