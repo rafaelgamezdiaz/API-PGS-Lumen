@@ -10,7 +10,6 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Dompdf\Dompdf;
-use Dompdf\Options;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
@@ -309,39 +308,6 @@ class ReportService
         return $snappy;
     }
 
-    public static function domPdf($html)
-    {
-        $html = self::getHtml($html);
-        $options = new Options();
-        $options->set('defaultFont', 'Arial');
-        $options->set('isRemoteEnabled', true);
-        $pdf = new DOMPDF($options);
-        $pdf->setPaper("Letter", self::$orientation);
-        $pdf->loadHtml($html);
-        $pdf->render();
-        $canvas = $pdf->getCanvas();
-        $footer = $canvas->open_object();
-        $w = $canvas->get_width();
-        $h = $canvas->get_height();
-        $canvas->page_text($w-60,$h-28,"Página {PAGE_NUM} de {PAGE_COUNT}", $pdf->getFontMetrics()->getFont("helvetica", "bold"),6);
-        $canvas->page_text($w-590,$h-28,"",$pdf->getFontMetrics()->getFont("helvetica", "bold"),6);
-        $canvas->close_object();
-        $canvas->add_object($footer,"all");
-
-        // Add Custom URL
-        if (self::$external) {
-            //$pdf->save('./reports/'.$name.'.pdf');
-            $output = $pdf->output();
-            file_put_contents('./reports/'.self::$name.'.pdf', $output);
-            return response()->json(["message"=>env('CUSTOM_URL').'/reports/'.self::$name.'.pdf'],200);
-        }
-        if (self::$returnRaw){
-            header('content-type:application/pdf');
-            return $pdf->output();
-        }
-        $pdf->stream('report.pdf', array('Attachment'=>0));
-        return $pdf;
-    }
 
     /**
      * @param $html

@@ -21,7 +21,8 @@ class Payment extends BaseModel
         'account',
         'amount',
         'amount_pending',
-        'status'
+        'status',
+        'payment_date'
     ];
 
     protected $hidden = [
