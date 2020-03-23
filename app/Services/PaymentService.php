@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Bill;
 use App\Models\Payment;
 use App\Traits\ApiResponser;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\ProvidesConvenienceMethods;
 
@@ -104,6 +105,7 @@ class PaymentService extends BaseService
     {
         $payment->fill($request->all());
         $payment->amount_pending = $request->amount;
+        $payment->payment_date = Carbon::now();
 
         if ($request->has('bill_id')) {   // If it is a Payment with Conciliation operations
             $this->validate($request, $payment->rulesPaymentConciliated());
@@ -275,7 +277,7 @@ class PaymentService extends BaseService
                      'amount'    => $payment_element['amount'],
                      'reference' => $payment_element['document'],
                      'amount_pending' => $payment_element['amount'],
-                     'created_at'   => $payment_element['fecha_pago']
+                     'payment_date' => $payment_element['fecha_pago']
                  ]);
             }
             DB::commit();
