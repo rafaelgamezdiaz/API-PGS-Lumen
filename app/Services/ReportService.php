@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use phpDocumentor\Reflection\Types\Self_;
 use PhpOffice\PhpSpreadsheet\Exception;
@@ -22,6 +23,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
+
 
 class ReportService
 {
@@ -285,6 +287,28 @@ class ReportService
      * @return Dompdf|\Illuminate\Http\JsonResponse|string
      */
     public static function pdf($html)
+    {
+        $snappy = App::make('snappy.pdf');
+        $snappy->setOption('page-size', 'Letter');
+        $snappy->setOption('images', true);
+        $snappy->setOption('no-images', false);
+        $html = self::getHtml($html);
+
+        // Add Custom URL
+        if (self::$external) {
+            $snappy->generateFromHtml($html, './reports/'.self::$name.'.pdf');
+            return response()->json(["message"=>env('CUSTOM_URL').'/reports/'.self::$name.'.pdf'],200);
+        }
+        if (self::$returnRaw){
+            header('content-type:application/pdf');
+            $snappy->generateFromHtml($html, './reports/'.self::$name.'.pdf');
+        }
+        //$pdf->stream('report.pdf', array('Attachment'=>0));
+        $snappy->generateFromHtml($html, './reports/'.self::$name.'.pdf');
+        return $snappy;
+    }
+
+    public static function domPdf($html)
     {
         $html = self::getHtml($html);
         $options = new Options();
