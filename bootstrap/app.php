@@ -103,6 +103,7 @@ $app->register(Nord\Lumen\Cors\CorsServiceProvider::class);
 */
 $app->configure('cors');
 $app->configure('services');
+$app->configure('snappy');
 
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
