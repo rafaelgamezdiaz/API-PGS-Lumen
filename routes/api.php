@@ -11,6 +11,9 @@
 |
 */
 
+
+use Illuminate\Support\Facades\URL;
+
 $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($router) {  // , 'middleware' => 'auth'
 
     // PAYMENT ROUTES
