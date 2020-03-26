@@ -74,11 +74,13 @@ class Payment extends BaseModel
         return $this->status == Payment::PAYMENT_STATUS_AVAILABLE;
     }
 
-    public function changeStatus(){
+    public function changeStatus($request){
         if ( $this->status == Payment::PAYMENT_STATUS_AVAILABLE ) {
             $this->status = Payment::PAYMENT_STATUS_NULL;
+            $this->description_deleted = $request->description_deleted;
         }else{
             $this->status = Payment::PAYMENT_STATUS_AVAILABLE;
+            $this->description_deleted = null;
         }
         if($this->save()){
             return $this->successResponse("Pago ".$this->status);

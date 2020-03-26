@@ -52,9 +52,9 @@ class PaymentController extends Controller
      /**
      * Remove a Payment
      */
-    public function destroy($id, PaymentService $paymentService)
+    public function destroy(Request $request, $id, PaymentService $paymentService)
     {
-        return $paymentService->destroy($id);
+        return $paymentService->destroy($request, $id);
     }
 
 }

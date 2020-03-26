@@ -217,13 +217,13 @@ class PaymentService extends BaseService
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
+    public function destroy($request, $id)
     {
         $payment = Payment::findOrFail($id);
         if(count($payment->bills) > 0) {
             return $this->errorMessage('Lo sentimos, este pago ya se encuentra asignado a alguna factura, por lo que no puede ser eliminado.');
         }
-        return $payment->changeStatus();
+        return $payment->changeStatus($request);
     }
 
     /**
