@@ -22,7 +22,7 @@ $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($ro
     $router->get('payments/{id}', 'Payment\PaymentController@show');
     $router->put('payments/{id}', 'Payment\PaymentController@update');
     $router->patch('payments/{id}', 'Payment\PaymentController@update');
-    $router->delete('payments/{id}', 'Payment\PaymentController@destroy');
+    $router->put('payments/{id}/cancel', 'Payment\PaymentController@cancel');
 
     // PAYMENT MASSIVE DATA LOAD
     $router->post('payments/massive', 'Payment\PaymentMassiveController@store');

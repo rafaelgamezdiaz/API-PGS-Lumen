@@ -217,7 +217,7 @@ class PaymentService extends BaseService
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($request, $id)
+    public function cancel($request, $id)
     {
         $payment = Payment::findOrFail($id);
         if(count($payment->bills) > 0) {
