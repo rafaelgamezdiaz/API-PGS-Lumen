@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\ApiResponser;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends BaseModel
 {
-    use SoftDeletes;
+    use SoftDeletes, ApiResponser;
 
     const PAYMENT_STATUS_AVAILABLE = 'Disponible';
     const PAYMENT_STATUS_ASSIGNED = 'Conciliado';
+    const PAYMENT_STATUS_NULL = 'Anulado';
 
     protected $table ='payments';
     protected $fillable = [
@@ -70,6 +72,18 @@ class Payment extends BaseModel
     public function isAvailable()
     {
         return $this->status == Payment::PAYMENT_STATUS_AVAILABLE;
+    }
+
+    public function changeStatus(){
+        if ( $this->status == Payment::PAYMENT_STATUS_AVAILABLE ) {
+            $this->status = Payment::PAYMENT_STATUS_NULL;
+        }else{
+            $this->status = Payment::PAYMENT_STATUS_AVAILABLE;
+        }
+        if($this->save()){
+            return $this->successResponse("Pago ".$this->status);
+        }
+        return $this->errorMessage('Ha ocurrido un error al intentar cambiar el status del pago.');
     }
 
     public function method()

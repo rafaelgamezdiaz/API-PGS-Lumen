@@ -15,6 +15,7 @@ class PaymentService extends BaseService
 {
     use ApiResponser, ProvidesConvenienceMethods;
 
+
     /**
      * Return payment list
      */
@@ -211,8 +212,10 @@ class PaymentService extends BaseService
         return count($payments) > 0;
     }
 
+
     /**
-     * Delete a payment ( only if it has not been conciliated with a bill )
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
@@ -220,11 +223,7 @@ class PaymentService extends BaseService
         if(count($payment->bills) > 0) {
             return $this->errorMessage('Lo sentimos, este pago ya se encuentra asignado a alguna factura, por lo que no puede ser eliminado.');
         }
-        if ($payment->delete())
-        {
-            return $this->successResponse('La información del pago ha sido eliminada.');
-        }
-        return $this->errorMessage('Ha ocurrido un error al intentar eliminar el pago.');
+        return $payment->changeStatus();
     }
 
     /**
