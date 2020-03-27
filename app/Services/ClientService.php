@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 
+
 class ClientService extends BaseService
 {
     use ApiResponser;
@@ -46,6 +47,10 @@ class ClientService extends BaseService
 
     /**
      * Returns a Client from API-Customers, by id
+     * @param $request
+     * @param $id
+     * @param bool $extended
+     * @return string
      */
     public function getClient($request, $id, $extended = true)
     {

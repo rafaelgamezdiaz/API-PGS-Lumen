@@ -5,6 +5,10 @@ namespace App\Models;
 use App\Traits\ApiResponser;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @method static create(array $array)
+ * @method static where(string $string, $account)
+ */
 class Payment extends BaseModel
 {
     use SoftDeletes, ApiResponser;

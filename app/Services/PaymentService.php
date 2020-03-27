@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Services;
-
 
 use App\Models\Bill;
 use App\Models\Payment;
@@ -11,15 +9,22 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\ProvidesConvenienceMethods;
 
+
 class PaymentService extends BaseService
 {
     use ApiResponser, ProvidesConvenienceMethods;
-
 
     /**
      * Return payment list
      */
 
+    /**
+     * @param $request
+     * @param $clientService
+     * @param $userService
+     * @param bool $is_query_report
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index($request, $clientService, $userService, $is_query_report = false)
     {
         $payments = $this->getPayments($request);
@@ -257,12 +262,17 @@ class PaymentService extends BaseService
         return $this->successResponse("Lista de Pagos del Cliente", $payments);
     }
 
+
     /**
      * Service to store massive data load of payment
+     * @param $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function massiveStore($request)
     {
         $payments = $request->payments;
+        $payment_date = $this->changeFormatDate($payments[0]['fecha_pago']);
+
         try {
             DB::beginTransaction();
             foreach ($payments as $payment_element)
@@ -276,7 +286,7 @@ class PaymentService extends BaseService
                      'amount'    => $payment_element['amount'],
                      'reference' => $payment_element['document'],
                      'amount_pending' => $payment_element['amount'],
-                     'payment_date' => $payment_element['fecha_pago']
+                     'payment_date' => $payment_date
                  ]);
             }
             DB::commit();
@@ -285,7 +295,7 @@ class PaymentService extends BaseService
             DB::rollback();
             return response()->json([
                 "status" => 500,
-                "message" => "No se ha podido realizar la carga masiva de pagos. Alguno de los pagos está siendo creado por duplicado."
+                "message" => "Ha ocurrido un error al intentar realizar la carga masiva."
             ], 500);
         }
         return $this->successResponse('Carga masiva de pagos realizada con éxito.');

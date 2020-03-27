@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @method static where(string $string, $bill_id)
+ */
 class Bill extends BaseModel
 {
     use SoftDeletes;

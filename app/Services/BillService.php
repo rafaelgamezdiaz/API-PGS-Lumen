@@ -3,17 +3,12 @@
 
 namespace App\Services;
 
-
 use App\Models\Bill;
 use App\Models\Payment;
 use App\Traits\ApiResponser;
-use function foo\func;
-use GuzzleHttp\Client;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Laravel\Lumen\Routing\ProvidesConvenienceMethods;
-use PDOException;
 
 class BillService extends BaseService
 {
