@@ -40,6 +40,12 @@ trait ConsumesExternalService
 
     public function getHeaders($request){
         $token = '';
+        if($request->hasHeader('x-timezone')){
+            $xtimezone = $request->header('x-timezone');
+        }else {
+            $xtimezone = 'America/Panama';
+
+        }
         if($request->hasHeader('Authorization')){
             $token = $request->header('Authorization');
         }
@@ -48,8 +54,9 @@ trait ConsumesExternalService
         }
         return [
             "Authorization" => $token,
-            "Accept" => "application/json",
-            "Cache-Control" => "no-cache"
+            "Accept"        => "application/json",
+            "Cache-Control" => "no-cache",
+            "xtimezone"    => $xtimezone
         ];
     }
 
@@ -113,6 +120,10 @@ trait ConsumesExternalService
 
     public function getUserName($request){
         return $request->get('user')->user->username;
+    }
+
+    public function getXTimeZone($request){
+        return $request->get('xtimezone');
     }
 
     /**

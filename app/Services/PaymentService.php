@@ -111,7 +111,7 @@ class PaymentService extends BaseService
     {
         $payment->fill($request->all());
         $payment->amount_pending = $request->amount;
-        $payment->payment_date = Carbon::now();
+        $payment->payment_date = $this->dateByZoneTime();
 
         if ($request->has('bill_id')) {   // If it is a Payment with Conciliation operations
             $this->validate($request, $payment->rulesPaymentConciliated());
@@ -124,7 +124,8 @@ class PaymentService extends BaseService
                     'payment_id'    => $payment->id,
                     'username'      => $request->username,
                     'account'       => $request->account,
-                    'amount_paid'   => $request->amount
+                    'amount_paid'   => $request->amount,
+                    'created_at'    => $this->dateByZoneTime()
                 ]);
 
                 if ( $billService->updatePayment($payment->id, 0) ) {
@@ -271,13 +272,12 @@ class PaymentService extends BaseService
     public function massiveStore($request)
     {
         $payments = $request->payments;
-        $payment_date = $this->changeFormatDate($payments[0]['fecha_pago']);
-
         try {
             DB::beginTransaction();
             foreach ($payments as $payment_element)
             {
-                 Payment::create([
+                $payment_date = $this->changeFormatDate($payment_element['fecha_pago']);
+                Payment::create([
                      'client_id' => $payment_element['client_id'],
                      'type_id'   => 2,  // 'A Recibir' default for massive payments
                      'method_id' => $payment_element['method_id'],
@@ -286,7 +286,8 @@ class PaymentService extends BaseService
                      'amount'    => $payment_element['amount'],
                      'reference' => $payment_element['document'],
                      'amount_pending' => $payment_element['amount'],
-                     'payment_date' => $payment_date
+                     'payment_date' => $payment_date,
+                     'created_at'   => $this->dateByZoneTime()
                  ]);
             }
             DB::commit();

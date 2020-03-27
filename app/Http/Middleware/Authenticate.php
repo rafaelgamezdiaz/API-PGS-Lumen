@@ -50,6 +50,8 @@ class Authenticate
             $response = $exception->getResponse();
             return response()->json(["error"=>true,"message"=>"Users Internal Error"],$response->getStatusCode());
         }
+
+        $request->attributes->add(['xtimezone' => $headers['xtimezone']]);
         $request->attributes->add(['user' => json_decode($response->getBody())]);
 
         return  $next($request);

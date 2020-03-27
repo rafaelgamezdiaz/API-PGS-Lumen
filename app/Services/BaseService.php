@@ -5,6 +5,7 @@ namespace App\Services;
 
 
 use App\Traits\ConsumesExternalService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class BaseService
@@ -13,11 +14,13 @@ class BaseService
 
     protected $account;
     protected $username;
+    protected $xtimezone;
 
     public function __construct(Request $request)
     {
         $this->account = $this->getAccount($request);
         $this->username = $this->getUserName($request);
+        $this->xtimezone = $this->getXTimeZone($request);
     }
 
     public function doRequest($request, $method, $endpoint, $params = null)
@@ -51,4 +54,7 @@ class BaseService
         return date('d/m/Y H:i:s', $t_date);
     }
 
+    public function dateByZoneTime(){
+        return Carbon::now()->setTimezone($this->xtimezone)->toDateTimeString();
+    }
 }
