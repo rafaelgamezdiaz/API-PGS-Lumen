@@ -40,11 +40,13 @@ trait ConsumesExternalService
 
     public function getHeaders($request){
         $token = '';
+        $timezone_panama = 'America/Panama';
+        $timezone_caracas = 'America/Caracas';
         if($request->hasHeader('x-timezone')){
-            $xtimezone = $request->header('x-timezone');
+            $x_timezone = $request->header('x-timezone');
+            $xtimezone = (strpos($x_timezone, $timezone_panama) !== false ) ? $timezone_panama : $timezone_caracas;
         }else {
-            $xtimezone = 'America/Panama';
-
+            $xtimezone = $timezone_panama;
         }
         if($request->hasHeader('Authorization')){
             $token = $request->header('Authorization');
@@ -172,7 +174,8 @@ trait ConsumesExternalService
         if($request && $request->hasHeader('Authorization')){
             return $request->header('Authorization');
         }
-        return null;    }
+        return null;
+    }
 
 
     public function getTokenFromHeader($request){
@@ -184,7 +187,11 @@ trait ConsumesExternalService
 
     /**
      * Send a request to any service
-     * @return string
+     * @param $method
+     * @param $requestUrl
+     * @param null $formParams
+     * @param array $headers
+     * @return mixed|\Psr\Http\Message\ResponseInterface
      */
     public function performRequest($method, $requestUrl, $formParams = null, $headers =[])
     {
@@ -213,9 +220,7 @@ trait ConsumesExternalService
             $return = json_decode($response->getBody(),true);
             $return['status'] = true;
             $return['statusCode'] = $response->getStatusCode();
-
             return $return;
-
         }catch (ClientException $exception){
             Log::critical($exception->getResponse()->getBody());
             $response['status'] = false;
@@ -239,62 +244,6 @@ trait ConsumesExternalService
             $response['response'] = $exception->getMessage();
             return $response;
         }
-
     }
-    public function performRequestX($method, $requestUrl, $formParams = null, $headers =[])
-    {
-        $client = new Client([
-            'base_uri' => $this->baseUri,
-            'timeout' => 20,
-        ]);
-        try{
-            if($method=='GET'){
-                $response = $client->get($requestUrl,['headers' => $headers]);
-            }elseif($method=='POST'){
-                if($formParams instanceof Request){
-                    $response = $client->post( $requestUrl, ['json' => $formParams->all(), 'headers' => $headers]);
-                }else{
-                    $response = $client->post( $requestUrl, ['json' => $formParams, 'headers' => $headers]);
-                }
-            }elseif($method=='PUT'){
-                $response = $client->put($requestUrl, ['json' => $formParams, 'headers' => $headers]);
-            }else{
-                //$response = $client->request($method, $requestUrl, ['json' => $formParams, 'headers' => $headers], ['connect_timeout' => 2, 'timeout' => 3, 'debug' => true]);
-                $response = $client->request($method, $requestUrl,  ['json' => $formParams, 'headers' => $headers]);
-            }
-            //$response = $client->request($method, $requestUrl, ['json' => $formParams, 'headers' => $headers]);
-            return json_decode($response->getBody(), true);
-
-        }catch (ClientException $exception){
-            Log::critical("ClientException");
-            Log::critical($exception->getResponse()->getBody());
-            $response['status'] = false;
-            $response['response'] = json_decode($exception->getResponse()->getBody());
-            $response['code'] = $exception->getResponse()->getStatusCode();
-            return $response;
-        }catch (ServerException $exception){
-            Log::critical("ServerException");
-            Log::critical($exception->getResponse()->getBody());
-            $response['status'] = false;
-            $response['response'] = json_decode($exception->getResponse()->getBody());
-            $response['code'] = $exception->getResponse()->getStatusCode();
-            return $response;
-        }catch (GuzzleException $exception){
-            Log::critical("GuzzleException");
-            Log::critical($exception->getMessage() . "\n" . $exception->getFile() . "\n" . $exception->getLine());
-            $response['status'] = false;
-            $response['response'] = $exception->getMessage();
-            $response['connection'] = 'refused';
-            return $response;
-        }catch (Exception $exception){
-            Log::critical("Exception");
-            Log::critical($exception->getMessage() . "\n" . $exception->getFile() . "\n" . $exception->getLine());
-            $response['status'] = false;
-            $response['response'] = $exception->getMessage();
-            return $response;
-        }
-
-    }
-
 
 }

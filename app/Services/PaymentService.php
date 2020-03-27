@@ -112,11 +112,9 @@ class PaymentService extends BaseService
         $payment->fill($request->all());
         $payment->amount_pending = $request->amount;
         $payment->payment_date = $this->dateByZoneTime();
-
         if ($request->has('bill_id')) {   // If it is a Payment with Conciliation operations
             $this->validate($request, $payment->rulesPaymentConciliated());
             if ($payment->save()) {
-
                 $payment->amount_pending = 0;
                 // Conciliate the payment
                 Bill::create([
@@ -124,10 +122,8 @@ class PaymentService extends BaseService
                     'payment_id'    => $payment->id,
                     'username'      => $request->username,
                     'account'       => $request->account,
-                    'amount_paid'   => $request->amount,
-                    'created_at'    => $this->dateByZoneTime()
+                    'amount_paid'   => $request->amount
                 ]);
-
                 if ( $billService->updatePayment($payment->id, 0) ) {
                     return $this->successResponse('Pago registrado con éxito.', $payment);
                 }
@@ -139,7 +135,6 @@ class PaymentService extends BaseService
                 return $this->successResponse('Pago registrado con éxito.', $payment);
             }
         };
-
         return $this->errorMessage('Ha ocurrido un error al intentar realizar el pago de la factura.');
     }
 
@@ -273,11 +268,11 @@ class PaymentService extends BaseService
     {
         $payments = $request->payments;
         try {
-          //  DB::beginTransaction();
+            DB::beginTransaction();
             foreach ($payments as $payment_element)
             {
-                return $payment_date = $this->changeFormatDate($payment_element['fecha_pago']);
-               /* Payment::create([
+                $payment_date = $this->changeFormatDate($payment_element['fecha_pago']);
+                Payment::create([
                      'client_id' => $payment_element['client_id'],
                      'type_id'   => 2,  // 'A Recibir' default for massive payments
                      'method_id' => $payment_element['method_id'],
@@ -286,11 +281,10 @@ class PaymentService extends BaseService
                      'amount'    => $payment_element['amount'],
                      'reference' => $payment_element['document'],
                      'amount_pending' => $payment_element['amount'],
-                     'payment_date' => $payment_date,
-                     'created_at'   => $this->dateByZoneTime()
-                 ]);*/
+                     'payment_date' => $payment_date
+                 ]);
             }
-          //  DB::commit();
+            DB::commit();
         }
         catch (\Exception $e){
             DB::rollback();
