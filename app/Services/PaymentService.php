@@ -273,11 +273,11 @@ class PaymentService extends BaseService
     {
         $payments = $request->payments;
         try {
-            DB::beginTransaction();
+          //  DB::beginTransaction();
             foreach ($payments as $payment_element)
             {
-                $payment_date = $this->changeFormatDate($payment_element['fecha_pago']);
-                Payment::create([
+                return $payment_date = $this->changeFormatDate($payment_element['fecha_pago']);
+               /* Payment::create([
                      'client_id' => $payment_element['client_id'],
                      'type_id'   => 2,  // 'A Recibir' default for massive payments
                      'method_id' => $payment_element['method_id'],
@@ -288,9 +288,9 @@ class PaymentService extends BaseService
                      'amount_pending' => $payment_element['amount'],
                      'payment_date' => $payment_date,
                      'created_at'   => $this->dateByZoneTime()
-                 ]);
+                 ]);*/
             }
-            DB::commit();
+          //  DB::commit();
         }
         catch (\Exception $e){
             DB::rollback();
