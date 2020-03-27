@@ -39,4 +39,22 @@ class Bill extends BaseModel
             'account'       => 'required|numeric'
         ];
     }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    public function getCreatedAtAttribute($value)
+    {
+        return $this->parseDate($value);
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    public function getUpdatedAtAttribute($value)
+    {
+        return $this->parseDate($value);
+    }
 }

@@ -111,7 +111,7 @@ class PaymentService extends BaseService
     {
         $payment->fill($request->all());
         $payment->amount_pending = $request->amount;
-        $payment->payment_date = $this->dateByZoneTime();
+        $payment->payment_date = Carbon::now();
         if ($request->has('bill_id')) {   // If it is a Payment with Conciliation operations
             $this->validate($request, $payment->rulesPaymentConciliated());
             if ($payment->save()) {

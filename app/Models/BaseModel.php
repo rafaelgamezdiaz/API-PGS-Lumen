@@ -172,22 +172,14 @@ class BaseModel extends Model
         return static::class;
     }
 
-
     /**
-     * @named Funcion para Obtener formateado (Y-m-d h:ia) el Atributo de Createdat
+     * @param $value
+     * @return string
      */
-    public function getCreatedAtAttribute($value)
-    {
-        $carbon = new Carbon($value);
-        return $carbon->subHours(5)->format('Y-m-d h:ia');
+    public function parseDate(string $value){
+        $request = app('Illuminate\Http\Request');
+        $timezone = ($request->hasHeader('x-timezone')) ? explode(',', $request->header('x-timezone'))[0]  : "America/Panama";
+        return Carbon::parse($value,'UTC')->setTimezone($timezone)->toDateTimeString();
     }
 
-    /**
-     * @named Funcion para obtener formateado (Y-m-d h:ia) el Atributo de Updatedat
-     */
-    public function getUpdatedAtAttribute($value)
-    {
-        $carbon = new Carbon($value);
-        return $carbon->subHours(5)->format('Y-m-d h:ia');
-    }
 }

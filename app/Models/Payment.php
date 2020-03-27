@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\ApiResponser;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -108,6 +109,33 @@ class Payment extends BaseModel
         return $this->hasMany(Bill::class);
     }
 
+
+    /**
+     * @param $value
+     * @return string
+     */
+    public function getCreatedAtAttribute($value)
+    {
+        return $this->parseDate($value);
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    public function getUpdatedAtAttribute($value)
+    {
+        return $this->parseDate($value);
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    public function getPaymentDateAttribute($value)
+    {
+        return $this->parseDate($value);
+    }
 
 
 }
