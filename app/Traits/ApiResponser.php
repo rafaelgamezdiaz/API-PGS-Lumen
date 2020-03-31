@@ -9,6 +9,7 @@ namespace App\Traits;
 
 
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 trait ApiResponser
 {
@@ -40,11 +41,19 @@ trait ApiResponser
     /**
      * Error Response
      * @param $message
+     * @param null $exception
      * @param int $code
      * @return \Illuminate\Http\JsonResponse
      */
-    public function errorMessage($message, $code = Response::HTTP_CONFLICT)
+    public function errorMessage($message, $exception = null, $code = Response::HTTP_CONFLICT)
     {
-        return response()->json(['message' => $message, 'status' => $code], $code)->header('Content-Type', 'application/json');
+        if ($exception !== null) {
+            Log::critical($exception->getMessage() . "\n" . $exception->getFile() . "\n" . $exception->getLine());
+            $message = env('APP_DEBUG') == true ? $message.': '.$exception->getMessage() : $message;
+        }
+        return response()->json([
+            "message" => $message,
+            "status" => $code
+        ], $code)->header('Content-Type', 'application/json');
     }
 }

@@ -201,7 +201,7 @@ class PaymentService extends BaseService
         if ($payment->update()) {
             return $this->successResponse("Pago actualizado con éxito.");
         }
-        return $this->errorMessage('Ha ocurrido un error al intentar actualizar el pago.', 409);
+        return $this->errorMessage('Ha ocurrido un error al intentar actualizar el pago.', null, 409);
     }
 
     public function checkCode($reference, $id)
@@ -286,12 +286,9 @@ class PaymentService extends BaseService
             }
             DB::commit();
         }
-        catch (\Exception $e){
+        catch (\Exception $exception){
             DB::rollback();
-            return response()->json([
-                "status" => 500,
-                "message" => "Ha ocurrido un error al intentar realizar la carga masiva."
-            ], 500);
+            return $this->errorMessage("Error en Carga Masiva", $exception, 500);
         }
         return $this->successResponse('Carga masiva de pagos realizada con éxito.');
     }

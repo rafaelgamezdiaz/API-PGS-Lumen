@@ -50,26 +50,26 @@ class Handler extends ExceptionHandler
         if ($exception instanceof HttpException) {
             $code = $exception->getStatusCode();
             $message = Response::$statusTexts[$code];
-            return $this->errorMessage($message, $code);
+            return $this->errorMessage($message, null,$code);
         }
         if ($exception instanceof ModelNotFoundException) {
             $model = strtolower(class_basename($exception->getModel()));
-            return $this->errorMessage("No existe una instancia de {$model} con ese id", Response::HTTP_NOT_FOUND);
+            return $this->errorMessage("No existe una instancia de {$model} con ese id", null,Response::HTTP_NOT_FOUND);
         }
         if ($exception instanceof AuthorizationException) {
-            return $this->errorMessage($exception->getMessage(), Response::HTTP_FORBIDDEN);
+            return $this->errorMessage($exception->getMessage(), null,Response::HTTP_FORBIDDEN);
         }
         if ($exception instanceof AuthenticationException) {
-            return $this->errorMessage($exception->getMessage(), Response::HTTP_UNAUTHORIZED);
+            return $this->errorMessage($exception->getMessage(), null,Response::HTTP_UNAUTHORIZED);
         }
         if ($exception instanceof ValidationException) {
             $errors = $exception->validator->errors()->getMessages();
-            return $this->errorMessage($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->errorMessage($errors, null,Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if (env('APP_DEBUG', false)) {
             return parent::render($request, $exception);
         }
-        return $this->errorMessage('Unexpected error. Try later', Response::HTTP_INTERNAL_SERVER_ERROR);
+        return $this->errorMessage('Unexpected error. Try later', null,Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 }
