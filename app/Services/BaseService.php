@@ -51,7 +51,7 @@ class BaseService
         $date = explode('/', $input_date);
         $str_date = join(array($date[1], '/',$date[0], '/',$date[2]));
         $t_date = strtotime($str_date);
-        return date('d/m/Y H:i:s', $t_date);
+        return date('Y-m-d H:i:s', $t_date);
     }
 
     public function dateByZoneTime(){
