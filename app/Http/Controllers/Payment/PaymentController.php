@@ -57,4 +57,13 @@ class PaymentController extends Controller
         return $paymentService->cancel($request, $id);
     }
 
+    /**
+     * Remove a Payment
+     */
+    public function destroy($id, PaymentService $paymentService)
+    {
+        return $paymentService->destroy($id);
+    }
+
+
 }

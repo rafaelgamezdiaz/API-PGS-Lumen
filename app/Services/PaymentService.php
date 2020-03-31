@@ -228,6 +228,27 @@ class PaymentService extends BaseService
     }
 
     /**
+     * Delete a payment ( only if it has not been conciliated with a bill )
+     */
+    public function destroy($id)
+    {
+        if (env('APP_DEBUG')) {
+            $payment = Payment::findOrFail($id);
+            if(count($payment->bills) > 0) {
+                return $this->errorMessage('Lo sentimos, este pago ya se encuentra asignado a alguna factura, por lo que no puede ser eliminado.');
+            }
+            if ($payment->delete())
+            {
+                return $this->successResponse('El pago ha sido eliminado.');
+            }
+            return $this->errorMessage('Ha ocurrido un error al intentar eliminar el pago.');
+        }
+        return $this->errorMessage('Operación denegada');
+
+    }
+
+
+    /**
      * Return payments of an specific client
      */
     public function clientPayments($request, $id, $clientService, $userService)

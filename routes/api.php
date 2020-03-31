@@ -23,6 +23,7 @@ $router->group(['prefix' => 'pay', 'middleware' => 'auth'], function () use ($ro
     $router->put('payments/{id}', 'Payment\PaymentController@update');
     $router->patch('payments/{id}', 'Payment\PaymentController@update');
     $router->put('payments/{id}/cancel', 'Payment\PaymentController@cancel');
+    $router->delete('payments/{id}/fulldelete', 'Payment\PaymentController@destroy');
 
     // PAYMENT MASSIVE DATA LOAD
     $router->post('payments/massive', 'Payment\PaymentMassiveController@store');
